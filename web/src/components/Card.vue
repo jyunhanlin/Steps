@@ -1,9 +1,10 @@
 <template>
-  <div class="steps-card">
-    <header>
+  <div class="card">
+    <header class="card__header">
       <slot name="header"></slot>
     </header>
-    <main>
+    <div class="card__hr" v-if="$slots.header"></div>
+    <main class="card__main">
       <slot name="main"></slot>
     </main>
     <footer>
@@ -14,8 +15,22 @@
 
 
 <style lang="scss" scoped>
-.steps-card {
+.card {
   width: 100%;
   height: 100%;
+  box-shadow: 0px 0px 42px 5px rgba(0,0,0,0.28);
+  border-radius: .8rem;
+  padding: 2rem 3rem;
+
+  &__header {
+    font-size: 1.8rem;
+  }
+
+  &__hr {
+    display: block;
+    border: .5px solid rgb(196, 196, 196);
+    margin-top: .5rem;
+    margin-bottom: 1rem;
+  }
 }
 </style>

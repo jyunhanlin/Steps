@@ -1,21 +1,23 @@
 import Vue from 'vue';
 import Router from 'vue-router';
+import * as firebaseService from './services/firebase';
 import Login from '../src/views/Login.vue';
-import Steps from '../src/views/Steps.vue';
+import Todo from '../src/views/Todo.vue';
 
 Vue.use(Router);
 
 const routes = [
   {
-    path: '/',
+    path: '/login',
     name: 'login',
     component: Login,
     alias: '/signin',
   },
   {
-    path: '/steps',
-    name: 'steps',
-    component: Steps,
+    path: '/',
+    name: 'todo',
+    component: Todo,
+    meta: { requiresAuth: true },
   },
 ];
 
@@ -31,16 +33,16 @@ const router = new Router({
   },
 });
 
-// router.beforeEach((to, from, next) => {
-//   store.commit('sync');
-//   if ((to.matched.some(record => record.meta.requiresAuth) && !store.getters.isAuth) ||
-//       (to.matched.some(record => record.meta.requiresAdmin) && !store.getters.isAdmin)) {
-//     store.commit('unauthorize');
-//     next({ path: '/login', query: { redirect: to.fullPath } });
-//   } else {
-//     next();
-//   }
-// });
+router.beforeEach((to, from, next) => {
+  const { currentUser } = firebaseService.auth;
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
+
+  if (requiresAuth && !currentUser) {
+    next('/login');
+  } else {
+    next();
+  }
+});
 
 
 export default router;

@@ -22,7 +22,7 @@
           <button class="login__btn" @click.prevent="signin()">Sign in</button>
           <div class="login__cta--group">
             <label class="login__label--link">or</label>
-            <a class="login__link">Sign Up</a>
+            <a class="login__link" @click.prevent="signup()">Sign Up</a>
           </div>
         </div>
       </form>
@@ -37,6 +37,7 @@
 </template>
 
 <script>
+import * as firebaseService from '../services/firebase';
 import Input from '../components/Input.vue';
 
 export default {
@@ -49,7 +50,20 @@ export default {
   },
   methods: {
     signin() {
-      console.log(this.userEmail, this.userPassword);
+      firebaseService.signin(this.userEmail, this.userPassword)
+        .then((user) => {
+          console.log(user);
+          this.$router.push('/');
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    },
+    signup() {
+      firebaseService.signup(this.userEmail, this.userPassword)
+        .catch((err) => {
+          console.log(err);
+        });
     },
   },
 };
