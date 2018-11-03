@@ -17,33 +17,64 @@
       <span>▶︎</span>
     </div>
     <div class="todo__steps">
-      <Card>
+      <Card class="todo__container">
         <div slot="header">Steps</div>
         <div slot="main">
-          <div class="todo__steps-container">
-            <div class="todo__steps-step">
-              <div class="todo__steps-group">
-                <input type="checkbox" class="todo__steps-ckb-input" id="ckb-input" />
-                <label for="ckb-input" class="todo__steps-ckb-group">
-                  <span class="todo__steps-ckb"></span>
-                  <span class="todo__steps-step-descr">this is description</span>
-                </label>
+          <div class="todo__steps-ul">
+            <div class="todo__steps-li">
+              <div
+                class="todo__steps-group"
+                v-for="(todo, todoIdx) in curDateTodos"
+                :key="todo.descr + todoIdx">
+                <div class="todo__steps-ckb-group">
+                  <input
+                    type="checkbox"
+                    class="todo__steps-ckb-input"
+                    :id="`ckb-input${todoIdx}`"
+                    :checked="todo.status"/>
+                  <label
+                    :for="`ckb-input${todoIdx}`"
+                    class="todo__steps-ckb"
+                    @click="completeTodo(todoIdx)">
+                  </label>
+                  <span
+                    class="todo__steps-descr"
+                    :class="{ 'todo__steps-descr--complete' : todo.status }">
+                    {{todo.descr}}
+                  </span>
+                  <!-- <input
+                    type="text"
+                    :value="todo.descr"
+                    @keyup.enter="updateTodo(todoIdx)"
+                    class="todo__steps-add-input" /> -->
+                </div>
+                <button
+                  class="todo__btn todo__steps-del-btn"
+                  @click="removeTodo(todoIdx)">
+                  刪除
+                </button>
               </div>
-              <button class="todo__btn">刪除</button>
             </div>
             <div class="todo__steps-sep-line"></div>
           </div>
           <div class="todo__steps-add-step">
-            <span class="todo__steps-add-btn">⨁</span>
-            <span class="todo__steps-add-descr">this is description</span>
-            <input type="text" class="todo__steps-add-input" />
+            <div class="todo__steps-add-btn" @click="openInput">⨁</div>
+            <div class="todo__steps-add-descr" v-if="!showInput">按下 alt + n 以新增</div>
+            <input
+              v-else
+              ref="addInput"
+              v-model="todoInput"
+              type="text"
+              class="todo__steps-add-input"
+              @keyup.enter="addTodo"
+              @blur="showInput = false" />
           </div>
         </div>
         <div slot="footer">this is footer</div>
       </Card>
     </div>
     <div class="todo__datepicker">
-      <Card>
+      <Card class="todo__container">
         <div slot="main">
           <v-calendar :attributes='attrs'>
           </v-calendar>
@@ -81,9 +112,51 @@ export default {
           dates: new Date(),
         },
       ],
+      showInput: false,
+      curDateTodos: [
+        {
+          descr: 'my first todo',
+          subDescr: '',
+          status: 1,
+        },
+      ],
+      todoInput: '',
     };
   },
+  mounted() {
+    window.addEventListener('keydown', (e) => {
+      if (e.altKey && e.keyCode === 78) {
+        this.openInput();
+      }
+    });
+  },
   methods: {
+    openInput() {
+      this.showInput = true;
+      this.$nextTick(() => {
+        this.$refs.addInput.focus();
+      });
+    },
+    addTodo() {
+      const newTodo = {
+        descr: this.todoInput,
+        subDescr: '',
+        status: 0,
+      };
+      this.curDateTodos.push(newTodo);
+      this.showInput = false;
+    },
+    completeTodo(idx) {
+      const todo = this.curDateTodos[idx];
+      const updateTodo = {
+        ...todo,
+        status: !todo.status,
+      };
+      this.curDateTodos.splice(idx, 1, updateTodo);
+    },
+    removeTodo(idx) {
+      this.curDateTodos.splice(idx, 1);
+    },
     logout() {
       firebaseService.signout()
         .then(() => {
@@ -150,15 +223,18 @@ export default {
     }
   }
 
-  &__steps-container {
-    // border: 1px solid red;
-    min-height: calc(100vh / 9 * 3);
+  &__container {
+    height: auto;
+  }
+
+  &__steps-ul {
+    min-height: calc(100vh / 9 * 2);
     position: relative;
     margin-top: 1.5rem;
   }
 
   &__steps-sep-line {
-    height: calc(100vh / 9 * 3);
+    height: 100%;
     width: .1rem;
     border: .5px solid rgb(196, 196, 196);
     position: absolute;
@@ -166,13 +242,21 @@ export default {
     top: 0;
   }
 
-  &__steps-step {
+  &__steps-group {
     display: flex;
     justify-content: space-between;
   }
 
+  &__steps-group:hover &__steps-del-btn {
+    opacity: 1;
+  }
+
   &__steps-ckb-input {
     display: none;
+  }
+
+  &__steps-ckb-input:checked + &__steps-ckb::after{
+    opacity: 1;
   }
 
   &__steps-ckb {
@@ -189,10 +273,24 @@ export default {
       top: -1rem;
       left: 0;
       font-size: 2rem;
+      opacity: 0;
     }
   }
 
+  &__steps-descr {
+
+    &--complete {
+      text-decoration: line-through;
+      font-style: italic;
+    }
+  }
+
+  &__steps-del-btn {
+    opacity: 0;
+  }
+
   &__btn {
+    cursor: pointer;
     border: none;
     &:focus {
       outline: none;
@@ -200,9 +298,31 @@ export default {
   }
 
   &__steps-add-btn {
-    display: inline-block;
     margin-right: 2.5rem;
     font-size: 1.5rem;
+    cursor: pointer;
+  }
+
+  &__steps-add-step {
+    display: flex;
+  }
+
+  &__steps-add-descr {
+    // display: flex;
+    // align-items: center;
+    width: 100%;
+  }
+
+  &__steps-add-input {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #E5E9EC;
+    transition: .5s;
+
+    &:focus {
+      outline: none;
+      border-color: rgb(45, 179, 116);
+    }
   }
 }
 </style>

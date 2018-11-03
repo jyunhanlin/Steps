@@ -4,7 +4,8 @@
       :type="inputType"
       class="steps-input__input"
       v-model="value"
-      @blur="emitValue($event.target.value)">
+      @blur="emitValue($event.target.value)"
+      @change="$emit('change', value)">
     <span
       class="steps-input__placeholder"
       :class="{ 'steps-input__placeholder--up' : value !== '' }">

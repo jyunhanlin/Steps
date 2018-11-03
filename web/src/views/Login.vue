@@ -5,7 +5,7 @@
       <div class="login__title">step by step.</div>
     </header>
     <main>
-      <form class="login__form">
+      <form class="login__form" @submit.prevent="signin()">
         <div class="login__input">
           <Input
             v-model="userEmail"
@@ -50,6 +50,7 @@ export default {
   },
   methods: {
     signin() {
+      console.log(this.userEmail, this.userPassword);
       firebaseService.signin(this.userEmail, this.userPassword)
         .then((user) => {
           console.log(user);
