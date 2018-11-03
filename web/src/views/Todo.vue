@@ -38,15 +38,21 @@
                     @click="completeTodo(todoIdx)">
                   </label>
                   <span
+                    v-if="todoIdx !== curTodoIdx"
                     class="todo__steps-descr"
-                    :class="{ 'todo__steps-descr--complete' : todo.status }">
+                    :class="{ 'todo__steps-descr--complete' : todo.status }"
+                    @click="openUpdateInput(todoIdx)">
                     {{todo.descr}}
                   </span>
-                  <!-- <input
+                  <input
+                    v-show="todoIdx === curTodoIdx"
+                    :ref="`updateInput${todoIdx}`"
                     type="text"
                     :value="todo.descr"
+                    @change="changeInput"
                     @keyup.enter="updateTodo(todoIdx)"
-                    class="todo__steps-add-input" /> -->
+                    @blur="curTodoIdx = -1"
+                    />
                 </div>
                 <button
                   class="todo__btn todo__steps-del-btn"
@@ -61,7 +67,7 @@
             <div class="todo__steps-add-btn" @click="openInput">⨁</div>
             <div class="todo__steps-add-descr" v-if="!showInput">按下 alt + n 以新增</div>
             <input
-              v-else
+              v-show="showInput"
               ref="addInput"
               v-model="todoInput"
               type="text"
@@ -143,6 +149,8 @@ export default {
         },
       ],
       todoInput: '',
+      curTodoIdx: -1,
+      updateInput: '',
     };
   },
   mounted() {
@@ -157,6 +165,12 @@ export default {
       this.showInput = true;
       this.$nextTick(() => {
         this.$refs.addInput.focus();
+      });
+    },
+    openUpdateInput(idx) {
+      this.curTodoIdx = idx;
+      this.$nextTick(() => {
+        this.$refs[`updateInput${idx}`][0].focus();
       });
     },
     addTodo() {
@@ -176,6 +190,18 @@ export default {
         status: !todo.status,
       };
       this.curDateTodos.splice(idx, 1, updateTodo);
+    },
+    changeInput(e) {
+      this.updateInput = e.target.value;
+    },
+    updateTodo(idx) {
+      const todo = this.curDateTodos[idx];
+      const updateTodo = {
+        ...todo,
+        descr: this.updateInput,
+      };
+      this.curDateTodos.splice(idx, 1, updateTodo);
+      this.curTodoIdx = -1;
     },
     removeTodo(idx) {
       this.curDateTodos.splice(idx, 1);
