@@ -73,11 +73,12 @@
         <div slot="footer">this is footer</div>
       </Card>
     </div>
-    <div class="todo__datepicker">
+    <div class="todo__calendar">
       <Card class="todo__container">
         <div slot="main">
-          <v-calendar :attributes='attrs'>
-          </v-calendar>
+          <v-calendar
+            :attributes='calendarAttrs'
+            :theme-styles='calendarStyle'/>
         </div>
       </Card>
     </div>
@@ -102,16 +103,37 @@ export default {
   data() {
     return {
       currentDate: dayjs().format('M/DD'),
-      attrs: [
+      calendarAttrs: [
         {
           key: 'today',
           highlight: {
-            backgroundColor: '#ff8080',
+            borderColor: 'black',
+            borderWidth: '1px',
+            borderRadius: '0',
+            height: '1.5rem',
             // Other properties are available too, like `height` & `borderRadius`
           },
-          dates: new Date(),
+          dates: dayjs().format('YYYY-MM-DD'),
+        },
+        {
+          dot: {
+            backgroundColor: '#794dff',
+          },
+          dates: [
+            dayjs('2018-11-01').format('YYYY-MM-DD'),
+            dayjs('2018-11-03').format('YYYY-MM-DD'),
+            dayjs('2018-11-05').format('YYYY-MM-DD'),
+            dayjs('2018-11-09').format('YYYY-MM-DD'),
+            dayjs('2018-11-15').format('YYYY-MM-DD'),
+          ],
         },
       ],
+      calendarStyle: {
+        wrapper: {
+          border: '0',
+          height: '100%',
+        },
+      },
       showInput: false,
       curDateTodos: [
         {
@@ -145,6 +167,7 @@ export default {
       };
       this.curDateTodos.push(newTodo);
       this.showInput = false;
+      this.todoInput = '';
     },
     completeTodo(idx) {
       const todo = this.curDateTodos[idx];
@@ -193,7 +216,7 @@ export default {
     margin: 0 3rem;
   }
 
-  &__datepicker {
+  &__calendar {
     grid-column: 7 / 9;
     grid-row: 3 / 6;
   }
