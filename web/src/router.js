@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import Router from 'vue-router';
-import * as firebaseService from './services/firebase';
+import { auth } from './services/firebase';
 import Login from '../src/views/Login.vue';
 import Todo from '../src/views/Todo.vue';
 
@@ -34,7 +34,7 @@ const router = new Router({
 });
 
 router.beforeEach((to, from, next) => {
-  const { currentUser } = firebaseService.auth;
+  const { currentUser } = auth;
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
 
   if (requiresAuth && !currentUser) {

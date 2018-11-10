@@ -1,5 +1,5 @@
 <template>
-  <div class="login">
+  <div class="login" ref="loginRef">
     <header>
       <div class="login__title">Acheve your goals.</div>
       <div class="login__title">step by step.</div>
@@ -30,41 +30,109 @@
     <footer>
       <div class="login__footer">
         <span class="login__label--link">forgot</span>
-        <a class="login__link">password?</a>
+        <a class="login__link" @click="forgotpassword()">password?</a>
       </div>
     </footer>
   </div>
 </template>
 
 <script>
-import * as firebaseService from '../services/firebase';
+import Vue from 'vue';
+import * as authService from '../services/auth';
 import Input from '../components/Input.vue';
+import Notification from '../components/Notification.vue';
 
 export default {
+  name: 'Login',
   components: { Input },
   data() {
     return {
       userEmail: '',
       userPassword: '',
+      notificationInstance: null,
     };
   },
   methods: {
     signin() {
-      console.log(this.userEmail, this.userPassword);
-      firebaseService.signin(this.userEmail, this.userPassword)
-        .then((user) => {
-          console.log(user);
-          this.$router.push('/');
+      if (this.userEmail === '' || this.userPassword === '') {
+        this.showNotification('輸入資訊不完整', 1000, false);
+      } else {
+        // console.log(this.userEmail, this.userPassword);
+        this.showNotification('登入中...', 1000, true);
+        authService.signin(this.userEmail, this.userPassword)
+          .then((user) => {
+            console.log(user);
+            this.showNotification('登入成功', 1000, true);
+            this.$router.push('/');
+          })
+          .catch((err) => {
+            switch (err.code) {
+              case 'auth/invalid-email':
+                this.showNotification('無效的email格式', 1000, false);
+                break;
+              case 'auth/wrong-password':
+                this.showNotification('錯誤的密碼', 1000, false);
+                break;
+              case 'auth/user-not-found':
+                this.showNotification('查無此帳號', 1000, false);
+                break;
+              default:
+                console.log(err);
+                this.showNotification('未知的錯誤訊息', 1000, false);
+                break;
+            }
+          });
+      }
+    },
+    signup() {
+      authService.signup(this.userEmail, this.userPassword)
+        .then(() => {
+          this.showNotification('註冊成功', 1000, true);
+        })
+        .catch((err) => {
+          switch (err.code) {
+            case 'auth/email-already-in-use':
+              this.showNotification('email已被註冊', 1000, false);
+              break;
+            case 'auth/invalid-email':
+              this.showNotification('無效的email格式', 1000, false);
+              break;
+            case 'auth/weak-password':
+              this.showNotification('密碼至少需要6碼', 1000, false);
+              break;
+            default:
+              console.log(err);
+              this.showNotification('未知的錯誤訊息', 1000, false);
+              break;
+          }
+        });
+    },
+    forgotpassword() {
+      authService.forgotPassword(this.userEmail)
+        .then(() => {
+          this.showNotification('重設密碼連結已寄到您的信箱', 1000, true);
         })
         .catch((err) => {
           console.log(err);
+          this.showNotification('未知的錯誤訊息', 1000, false);
         });
     },
-    signup() {
-      firebaseService.signup(this.userEmail, this.userPassword)
-        .catch((err) => {
-          console.log(err);
-        });
+    showNotification(message, duration = 0, status) {
+      const NotificationCmp = Vue.extend(Notification);
+      if (this.notificationInstance) {
+        this.notificationInstance.$el.remove();
+        this.notificationInstance = null;
+      }
+      this.notificationInstance = new NotificationCmp({
+        propsData: {
+          message,
+          duration,
+          success: status,
+          error: !status,
+        },
+      });
+      this.notificationInstance.$mount();
+      this.$refs.loginRef.appendChild(this.notificationInstance.$el);
     },
   },
 };

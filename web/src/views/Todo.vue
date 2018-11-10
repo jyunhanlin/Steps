@@ -23,7 +23,7 @@
           <div class="steps__ul">
             <div
               class="steps__li"
-              v-for="(todo, todoIdx) in curDateTodos"
+              v-for="(todo, todoIdx) in curDateTodos.steps"
               :key="todo.descr + todoIdx">
               <div class="steps__li--group">
                 <input
@@ -49,8 +49,9 @@
                   type="text"
                   class="input"
                   :value="todo.descr"
-                  @change="changeUpdateInput"
-                  @keyup.enter="updateTodo(todoIdx)"
+                  @input="changeUpdateInput"
+                  @keyup.enter="updateTodo(todoIdx, todo.descr)"
+                  @keyup.esc="curTodoIdx = -1"
                   @blur="curTodoIdx = -1"
                   />
               </div>
@@ -60,30 +61,40 @@
                 刪除
               </button>
             </div>
+            <div class="steps__add-step">
+              <div class="steps__add-btn" @click="openNewInput">⨁</div>
+              <div
+                v-if="!showNewInput"
+                class="steps__add-descr"
+                @click="openNewInput">
+                按下 alt + n 以新增
+              </div>
+              <input
+                v-show="showNewInput"
+                ref="newInput"
+                v-model="newInput"
+                type="text"
+                class="input"
+                @keyup.enter="addNewTodo"
+                @blur="showNewInput = false" />
+            </div>
             <div class="steps__sep-line"></div>
           </div>
-          <div class="steps__add-step">
-            <div class="steps__add-btn" @click="openNewInput">⨁</div>
-            <div class="steps__add-descr" v-if="!showNewInput">按下 alt + n 以新增</div>
-            <input
-              v-show="showNewInput"
-              ref="newInput"
-              v-model="newInput"
-              type="text"
-              class="input"
-              @keyup.enter="addNewTodo"
-              @blur="showNewInput = false" />
+        </div>
+        <div slot="footer">
+          <div class="steps__charts">
+            <Doughnut :height="100" :width="100"/>
+            <Bar :height="75" :width="300"/>
           </div>
         </div>
-        <div slot="footer">this is footer</div>
       </Card>
     </div>
     <div class="calendar">
       <Card class="container">
         <div slot="main">
           <v-calendar
-            :attributes='calendarAttrs'
-            :theme-styles='calendarStyle'/>
+            :attributes="calendarAttrs"
+            :theme-styles="calendarStyle"/>
         </div>
       </Card>
     </div>
@@ -100,11 +111,15 @@
 
 <script>
 import dayjs from 'dayjs';
-import * as firebaseService from '../services/firebase';
+import { auth, db } from '../services/firebase';
+import * as authService from '../services/auth';
 import Card from '../components/Card.vue';
+import Doughnut from '../components/Doughnut';
+import Bar from '../components/Bar';
 
 export default {
-  components: { Card },
+  name: 'Todo',
+  components: { Bar, Card, Doughnut },
   data() {
     return {
       currentDate: dayjs().format('M/DD'),
@@ -150,6 +165,13 @@ export default {
       newInput: '',
       curTodoIdx: -1,
       updateInput: '',
+      userId: auth.currentUser.uid || 'null',
+      mountains: [],
+    };
+  },
+  firestore() {
+    return {
+      curDateTodos: db.collection(this.userId).doc(dayjs().format('YYYY-MM-DD')),
     };
   },
   mounted() {
@@ -173,40 +195,57 @@ export default {
       });
     },
     addNewTodo() {
+      const allTodos = this.curDateTodos.steps.slice();
       const newTodo = {
+        id: '',
         descr: this.newInput,
         subDescr: '',
-        status: 0,
+        status: false,
       };
-      this.curDateTodos.push(newTodo);
+      allTodos.push(newTodo);
+      db.collection(this.userId).doc(dayjs().format('YYYY-MM-DD')).set({
+        date: new Date(),
+        steps: allTodos,
+      });
       this.showNewInput = false;
       this.newInput = '';
     },
     updateTodoStatus(idx) {
-      const todo = this.curDateTodos[idx];
-      const updateTodo = {
-        ...todo,
-        status: !todo.status,
-      };
-      this.curDateTodos.splice(idx, 1, updateTodo);
+      const allTodos = this.curDateTodos.steps.slice();
+      allTodos[idx].status = !allTodos[idx].status;
+      db.collection(this.userId).doc(dayjs().format('YYYY-MM-DD')).set({
+        date: new Date(),
+        steps: allTodos,
+      });
     },
     changeUpdateInput(e) {
       this.updateInput = e.target.value;
     },
-    updateTodo(idx) {
-      const todo = this.curDateTodos[idx];
-      const updateTodo = {
-        ...todo,
-        descr: this.updateInput,
-      };
-      this.curDateTodos.splice(idx, 1, updateTodo);
+    updateTodo(idx, descr) {
+      if (this.updateInput === '') this.updateInput = descr;
+      const allTodos = this.curDateTodos.steps.slice();
+      allTodos[idx].descr = this.updateInput;
+      db.collection(this.userId).doc(dayjs().format('YYYY-MM-DD')).set({
+        date: new Date(),
+        steps: allTodos,
+      });
       this.curTodoIdx = -1;
     },
     removeTodo(idx) {
-      this.curDateTodos.splice(idx, 1);
+      // TODO
+      // eslint-disable-next-line
+      const sure = window.confirm('確定刪除?');
+      if (sure) {
+        const allTodos = this.curDateTodos.steps.slice();
+        allTodos.splice(idx, 1);
+        db.collection(this.userId).doc(dayjs().format('YYYY-MM-DD')).set({
+          date: new Date(),
+          steps: allTodos,
+        });
+      }
     },
     logout() {
-      firebaseService.signout()
+      authService.signout()
         .then(() => {
           this.$router.push('/login');
         })
@@ -218,13 +257,12 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
+<style lang='scss' scoped>
 .todo {
   display: grid;
   grid-template-columns: 1fr repeat(7, minmax(min-content, 12rem)) 1fr;
   grid-template-rows: repeat(9, calc(100vh / 9));
 }
-
 
 .moutain {
   grid-column: 2 / 4;
@@ -244,6 +282,7 @@ export default {
 
   &__card {
     min-height: calc(100vh / 9 * 6);
+    margin-bottom: 2rem;
   }
 
   &__ul {
@@ -254,8 +293,8 @@ export default {
 
   &__sep-line {
     height: 100%;
-    width: .1rem;
-    border: .5px solid rgb(196, 196, 196);
+    width: 0.1rem;
+    border: 0.5px solid rgb(196, 196, 196);
     position: absolute;
     left: 2rem;
     top: 0;
@@ -264,7 +303,7 @@ export default {
   &__li {
     display: flex;
     justify-content: space-between;
-    padding: .5rem 0;
+    padding: 0.5rem 0;
     & * {
       flex: 0 0 auto;
     }
@@ -280,7 +319,7 @@ export default {
     opacity: 1;
   }
 
-  &__ckb--input:checked + &__ckb::after{
+  &__ckb--input:checked + &__ckb::after {
     opacity: 1;
   }
 
@@ -322,14 +361,16 @@ export default {
   }
 
   &__add-btn {
-    margin-right: 2.5rem;
-    font-size: 1.5rem;
+    margin-left: -0.2rem;
+    margin-right: 1.5rem;
+    font-size: 2rem;
     cursor: pointer;
   }
 
   &__add-descr {
     width: 100%;
-    line-height: 2rem;
+    line-height: 3rem;
+    cursor: pointer;
   }
 }
 
@@ -381,8 +422,8 @@ export default {
   color: inherit;
   width: 100%;
   border: none;
-  border-bottom: 1px solid #E5E9EC;
-  transition: .5s;
+  border-bottom: 1px solid #e5e9ec;
+  transition: 0.5s;
 
   &:focus {
     outline: none;

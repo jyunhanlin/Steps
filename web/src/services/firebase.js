@@ -1,4 +1,6 @@
-import * as firebase from 'firebase';
+import firebase from 'firebase/app';
+import 'firebase/firebase-auth';
+import 'firebase/firebase-firestore';
 
 const config = {
   apiKey: 'AIzaSyCKwmgwS8VVNxyafvYaGjZygj_oxaLZcP0',
@@ -13,23 +15,15 @@ if (!firebase.apps.length) {
   firebase.initializeApp(config);
 }
 
+
 const auth = firebase.auth();
+const db = firebase.firestore();
+const settings = {/* your settings... */ timestampsInSnapshots: true };
+db.settings(settings);
 
-const signup = (email, password) => auth.createUserWithEmailAndPassword(email, password);
-
-const signin = (email, password) =>
-  auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
-    .then(() => auth.signInWithEmailAndPassword(email, password));
-
-const signout = () => auth.signOut();
-
-const checkAuthStateChanged = cb => auth.onAuthStateChanged(cb);
-
+auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
 
 export {
+  db,
   auth,
-  signin,
-  signup,
-  signout,
-  checkAuthStateChanged,
 };

@@ -17,6 +17,7 @@
 
 <script>
 export default {
+  name: 'Input',
   model: {
     prop: 'inputValue',
     event: 'change',
