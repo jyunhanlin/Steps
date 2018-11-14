@@ -3,7 +3,7 @@
     <header class="card__header">
       <slot name="header"></slot>
     </header>
-    <div class="card__hr" v-if="$slots.header"></div>
+    <!-- <div class="card__hr" v-if="$slots.header"></div> -->
     <main class="card__main">
       <slot name="main"></slot>
     </main>

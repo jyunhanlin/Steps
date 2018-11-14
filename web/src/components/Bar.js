@@ -1,33 +1,11 @@
 import { Bar, mixins } from 'vue-chartjs';
 
+const { reactiveProp } = mixins;
+
 export default {
   name: 'Bar',
   extends: Bar,
-  mixins: [mixins.reactiveProp],
-  props: {
-    chartData: {
-      type: Object,
-      default() {
-        return {
-          labels: ['123', '', '', '', '', '', ''],
-          datasets: [
-            {
-              backgroundColor: [
-                '#c4c4c4',
-                '#c4c4c4',
-                '#111111',
-                '#c4c4c4',
-                '#c4c4c4',
-                '#c4c4c4',
-                '#c4c4c4',
-              ],
-              data: [1, 5, 4, 2, 7, 1, 3],
-            },
-          ],
-        };
-      },
-    },
-  },
+  mixins: [reactiveProp],
   data() {
     return {
       options: {

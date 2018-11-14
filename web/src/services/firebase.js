@@ -21,8 +21,6 @@ const db = firebase.firestore();
 const settings = {/* your settings... */ timestampsInSnapshots: true };
 db.settings(settings);
 
-auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
-
 export {
   db,
   auth,

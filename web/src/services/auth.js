@@ -1,7 +1,10 @@
+import firebase from 'firebase/app';
 import { auth } from './firebase';
 
 
-const signup = (email, password) => auth.createUserWithEmailAndPassword(email, password);
+const signup = (email, password) =>
+  auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).then(() =>
+    auth.createUserWithEmailAndPassword(email, password));
 
 const signin = (email, password) => auth.signInWithEmailAndPassword(email, password);
 

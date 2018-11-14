@@ -85,7 +85,7 @@ export default {
   }
 
   &--error {
-    background-color: #fd8f8e;
+    background-color: #FF8D8D;
   }
 }
 

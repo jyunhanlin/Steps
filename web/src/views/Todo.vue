@@ -12,9 +12,9 @@
       </Card>
     </div> -->
     <div class="current-date">
-      <span>◀︎</span>
-      <span>{{currentDate}}</span>
-      <span>▶︎</span>
+      <span class="current-date__left-arrow" @click="changeDate(-1)">◀︎</span>
+      <span class="current-date__date">{{currentDate | dateFormat}}</span>
+      <span class="current-date__right-arrow" @click="changeDate(1)">▶︎</span>
     </div>
     <div class="steps">
       <Card class="container steps__card">
@@ -78,13 +78,24 @@
                 @keyup.enter="addNewTodo"
                 @blur="showNewInput = false" />
             </div>
-            <div class="steps__sep-line"></div>
+            <!-- <div class="steps__sep-line"></div> -->
           </div>
         </div>
         <div slot="footer">
           <div class="steps__charts">
-            <Doughnut :height="100" :width="100"/>
-            <Bar :height="75" :width="300"/>
+            <!-- <Doughnut :height="100" :width="100"/> -->
+            <radial-progress-bar
+              startColor="#32C373"
+              stopColor="#32C373"
+              innerStrokeColor="#D8D8D8"
+              :diameter="100"
+              :strokeWidth="5"
+              :completed-steps="completedSteps"
+              :total-steps="totalSteps"
+              :animateSpeed="300">
+              <p>{{`${Math.round(completedSteps / totalSteps * 100)}%`}}</p>
+            </radial-progress-bar>
+            <Bar :height="75" :width="300" :chart-data="barData"/>
           </div>
         </div>
       </Card>
@@ -94,7 +105,8 @@
         <div slot="main">
           <v-calendar
             :attributes="calendarAttrs"
-            :theme-styles="calendarStyle"/>
+            :theme-styles="calendarStyle"
+            @dayclick='dayClicked'/>
         </div>
       </Card>
     </div>
@@ -111,6 +123,7 @@
 
 <script>
 import dayjs from 'dayjs';
+import RadialProgressBar from 'vue-radial-progress';
 import { auth, db } from '../services/firebase';
 import * as authService from '../services/auth';
 import Card from '../components/Card.vue';
@@ -119,33 +132,29 @@ import Bar from '../components/Bar';
 
 export default {
   name: 'Todo',
-  components: { Bar, Card, Doughnut },
+  components: {
+    Bar, Card, Doughnut, RadialProgressBar,
+  },
   data() {
     return {
-      currentDate: dayjs().format('M/DD'),
+      currentDate: dayjs().format('YYYY-MM-DD'),
       calendarAttrs: [
         {
           key: 'today',
           highlight: {
-            borderColor: 'black',
-            borderWidth: '1px',
+            // borderColor: 'black',
+            // borderWidth: '1px',
             borderRadius: '0',
-            height: '1.5rem',
+            // height: '1.5rem',
             // Other properties are available too, like `height` & `borderRadius`
+            backgroundColor: '#EEEEEE',
+            height: '100%',
+            width: '100%',
           },
+          // contentStyle: {
+          //   border: '1px solid #E9E9E9',
+          // },
           dates: dayjs().format('YYYY-MM-DD'),
-        },
-        {
-          dot: {
-            backgroundColor: '#794dff',
-          },
-          dates: [
-            dayjs('2018-11-01').format('YYYY-MM-DD'),
-            dayjs('2018-11-03').format('YYYY-MM-DD'),
-            dayjs('2018-11-05').format('YYYY-MM-DD'),
-            dayjs('2018-11-09').format('YYYY-MM-DD'),
-            dayjs('2018-11-15').format('YYYY-MM-DD'),
-          ],
         },
       ],
       calendarStyle: {
@@ -153,28 +162,29 @@ export default {
           border: '0',
           height: '100%',
         },
-      },
-      curDateTodos: [
-        {
-          descr: 'my first todo',
-          subDescr: '',
-          status: 1,
+        dayCell: {
+          border: '.5px solid #E9E9E9',
         },
-      ],
+      },
+      barData: null,
       showNewInput: false,
       newInput: '',
       curTodoIdx: -1,
       updateInput: '',
       userId: auth.currentUser.uid || 'null',
       mountains: [],
-    };
-  },
-  firestore() {
-    return {
-      curDateTodos: db.collection(this.userId).doc(dayjs().format('YYYY-MM-DD')),
+      curMonthTodos: {},
+      curDateTodos: {
+        date: dayjs(this.currentDate).unix(),
+        steps: [],
+      },
+      firebaseUnsubscribe: null,
+      totalSteps: 1,
+      completedSteps: 0,
     };
   },
   mounted() {
+    this.getMonthTodos();
     window.addEventListener('keydown', (e) => {
       if (e.altKey && e.keyCode === 78) {
         this.openNewInput();
@@ -194,55 +204,69 @@ export default {
         this.$refs[`updateInput${idx}`][0].focus();
       });
     },
+    changeDate(plusMinus) {
+      let needUnsubscribe = false;
+      const endOfMonth = dayjs(this.currentDate).endOf('month').format('YYYY-MM-DD');
+      const startOfMonth = dayjs(this.currentDate).startOf('month').format('YYYY-MM-DD');
+
+      if (plusMinus === 1) {
+        if (this.currentDate === endOfMonth) {
+          needUnsubscribe = true;
+        }
+        this.currentDate = dayjs(this.currentDate).add(1, 'days').format('YYYY-MM-DD');
+      } else {
+        if (this.currentDate === startOfMonth) {
+          needUnsubscribe = true;
+        }
+        this.currentDate = dayjs(this.currentDate).subtract(1, 'days').format('YYYY-MM-DD');
+      }
+      this.curDateTodos = {
+        date: dayjs(this.currentDate).unix(),
+        steps: [],
+      };
+      if ({}.hasOwnProperty.call(this.curMonthTodos, this.currentDate)) {
+        this.curDateTodos = this.curMonthTodos[this.currentDate];
+      }
+      this.checkCircleProgress();
+      if (needUnsubscribe) this.getMonthTodos();
+    },
     addNewTodo() {
-      const allTodos = this.curDateTodos.steps.slice();
       const newTodo = {
         id: '',
         descr: this.newInput,
         subDescr: '',
         status: false,
       };
-      allTodos.push(newTodo);
-      db.collection(this.userId).doc(dayjs().format('YYYY-MM-DD')).set({
-        date: new Date(),
-        steps: allTodos,
-      });
+      this.curDateTodos.steps.push(newTodo);
       this.showNewInput = false;
       this.newInput = '';
+      this.checkCircleProgress();
+      this.updateCurDateTodosInFirebase();
     },
     updateTodoStatus(idx) {
-      const allTodos = this.curDateTodos.steps.slice();
-      allTodos[idx].status = !allTodos[idx].status;
-      db.collection(this.userId).doc(dayjs().format('YYYY-MM-DD')).set({
-        date: new Date(),
-        steps: allTodos,
-      });
+      this.curDateTodos.steps[idx].status = !this.curDateTodos.steps[idx].status;
+      this.checkCircleProgress();
+      this.updateCurDateTodosInFirebase();
     },
     changeUpdateInput(e) {
       this.updateInput = e.target.value;
     },
     updateTodo(idx, descr) {
       if (this.updateInput === '') this.updateInput = descr;
-      const allTodos = this.curDateTodos.steps.slice();
-      allTodos[idx].descr = this.updateInput;
-      db.collection(this.userId).doc(dayjs().format('YYYY-MM-DD')).set({
-        date: new Date(),
-        steps: allTodos,
-      });
+      this.curDateTodos.steps[idx].descr = this.updateInput;
       this.curTodoIdx = -1;
+      this.checkCircleProgress();
+      this.updateCurDateTodosInFirebase();
     },
     removeTodo(idx) {
       // TODO
       // eslint-disable-next-line
       const sure = window.confirm('確定刪除?');
       if (sure) {
-        const allTodos = this.curDateTodos.steps.slice();
-        allTodos.splice(idx, 1);
-        db.collection(this.userId).doc(dayjs().format('YYYY-MM-DD')).set({
-          date: new Date(),
-          steps: allTodos,
-        });
+        this.curDateTodos.steps.splice(idx, 1);
       }
+      this.checkCircleProgress();
+      this.updateCurDateTodosInFirebase();
     },
     logout() {
       authService.signout()
@@ -252,6 +276,102 @@ export default {
         .catch((err) => {
           console.log('logout fail', err);
         });
+    },
+    updateCurDateTodosInFirebase() {
+      db.collection(this.userId).doc(this.currentDate).set(this.curDateTodos);
+    },
+    getMonthTodos() {
+      const endOfMonth = dayjs(dayjs(this.currentDate).endOf('month').format('YYYY-MM-DD')).unix();
+      const startOfMonth = dayjs(dayjs(this.currentDate).startOf('month').format('YYYY-MM-DD')).unix();
+
+      if (this.firebaseUnsubscribe) {
+        console.log('unsubscribe first');
+        this.firebaseUnsubscribe();
+      }
+
+      this.firebaseUnsubscribe = db.collection(this.userId)
+        .where('date', '>=', startOfMonth).where('date', '<=', endOfMonth)
+        .onSnapshot((querySnapshot) => {
+          querySnapshot.forEach((doc) => {
+            // doc.data() is never undefined for query doc snapshots
+            // console.log(doc.id, doc.data());
+            this.curMonthTodos[doc.id] = doc.data();
+          });
+          if ({}.hasOwnProperty.call(this.curMonthTodos, this.currentDate)) {
+            this.curDateTodos = this.curMonthTodos[this.currentDate];
+          }
+          this.checkCircleProgress();
+          this.checkCalendar();
+          this.checkBar();
+        }, (err) => {
+          console.log('query error: ', err);
+        });
+    },
+    checkCircleProgress() {
+      this.totalSteps = this.curDateTodos.steps.length || 1;
+      this.completedSteps = this.curDateTodos.steps.filter(step => step.status).length;
+    },
+    checkCalendar() {
+      const dotAttrs = {
+        dot: {
+          backgroundColor: '#D8D8D8',
+        },
+        dates: [],
+      };
+
+      Object.keys(this.curMonthTodos).forEach((date) => {
+        if (this.curMonthTodos[date].steps.some(step => !step.status)) {
+          dotAttrs.dates.push(date);
+        }
+      });
+      this.calendarAttrs.push(dotAttrs);
+    },
+    checkBar() {
+      this.barData = {};
+      this.barData.labels = [];
+      this.barData.datasets = [];
+      const barDataSet = {
+        backgroundColor: [],
+        data: [],
+      };
+      for (let i = 6; i >= 0; i -= 1) {
+        const date = dayjs(this.currentDate).subtract(i, 'day').format('YYYY-MM-DD');
+        let todosLen = 0;
+        if ({}.hasOwnProperty.call(this.curMonthTodos, date)) {
+          todosLen = this.curMonthTodos[date].steps.length;
+        }
+
+        this.barData.labels.push(date);
+        barDataSet.data.push(todosLen);
+      }
+      barDataSet.backgroundColor = [
+        '#D8D8D8',
+        '#D8D8D8',
+        '#D8D8D8',
+        '#D8D8D8',
+        '#D8D8D8',
+        '#D8D8D8',
+        '#878787',
+      ];
+      this.barData.datasets.push(barDataSet);
+    },
+    dayClicked(day) {
+      this.currentDate = dayjs(day.date).format('YYYY-MM-DD');
+      this.curDateTodos = {
+        date: dayjs(this.currentDate).unix(),
+        steps: [],
+      };
+      if ({}.hasOwnProperty.call(this.curMonthTodos, this.currentDate)) {
+        this.curDateTodos = this.curMonthTodos[this.currentDate];
+      }
+      this.checkCircleProgress();
+    },
+  },
+  filters: {
+    dateFormat(date) {
+      const dateArray = date.split('-');
+      dateArray.shift();
+      return dateArray.join('/');
     },
   },
 };
@@ -372,6 +492,13 @@ export default {
     line-height: 3rem;
     cursor: pointer;
   }
+
+  &__charts {
+    display: flex;
+    flex-direction: column;
+    // justify-content: center;
+    align-items: center;
+  }
 }
 
 .calendar {
@@ -385,6 +512,15 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
+
+  &__date {
+    font-size: 4rem;
+  }
+  &__right-arrow, &__left-arrow {
+    cursor: pointer;
+    font-size: 2rem;
+    padding: 0 1rem;
+  }
 }
 
 .user {
