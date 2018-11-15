@@ -20,46 +20,49 @@
       <Card class="container steps__card">
         <div slot="header">Steps</div>
         <div slot="main">
-          <div class="steps__ul">
-            <div
-              class="steps__li"
-              v-for="(todo, todoIdx) in curDateTodos.steps"
-              :key="todo.descr + todoIdx">
-              <div class="steps__li--group">
-                <input
-                  type="checkbox"
-                  class="steps__ckb--input"
-                  :id="`ckb-input${todoIdx}`"
-                  :checked="todo.status"/>
-                <label
-                  :for="`ckb-input${todoIdx}`"
-                  class="steps__ckb"
-                  @click="updateTodoStatus(todoIdx)">
-                </label>
-                <span
-                  v-if="todoIdx !== curTodoIdx"
-                  class="steps__descr"
-                  :class="{ 'steps__descr--complete' : todo.status }"
-                  @click="openUpdateInput(todoIdx)">
-                  {{todo.descr}}
-                </span>
-                <input
-                  v-show="todoIdx === curTodoIdx"
-                  :ref="`updateInput${todoIdx}`"
-                  type="text"
-                  class="input"
-                  :value="todo.descr"
-                  @input="changeUpdateInput"
-                  @keyup.enter="updateTodo(todoIdx, todo.descr)"
-                  @keyup.esc="curTodoIdx = -1"
-                  @blur="curTodoIdx = -1"
-                  />
+          <div class="steps__todos">
+            <div class="steps__ul">
+              <div
+                class="steps__li"
+                v-for="(todo, todoIdx) in curDateTodos.steps"
+                :key="todo.descr + todoIdx">
+                <div class="steps__li--group">
+                  <input
+                    type="checkbox"
+                    class="steps__ckb--input"
+                    :id="`ckb-input${todoIdx}`"
+                    :checked="todo.status"/>
+                  <label
+                    :for="`ckb-input${todoIdx}`"
+                    class="steps__ckb"
+                    @click="updateTodoStatus(todoIdx)">
+                  </label>
+                  <span
+                    v-if="todoIdx !== curTodoIdx"
+                    class="steps__descr"
+                    :class="{ 'steps__descr--complete' : todo.status }"
+                    @click="openUpdateInput(todoIdx)">
+                    {{todo.descr}}
+                  </span>
+                  <input
+                    v-show="todoIdx === curTodoIdx"
+                    :ref="`updateInput${todoIdx}`"
+                    type="text"
+                    class="input"
+                    :value="todo.descr"
+                    @input="changeUpdateInput"
+                    @keyup.enter="updateTodo(todoIdx, todo.descr)"
+                    @keyup.esc="curTodoIdx = -1"
+                    @blur="curTodoIdx = -1"
+                    />
+                </div>
+                <button
+                  class="btn steps__del-btn"
+                  @click="removeTodo(todoIdx)">
+                  刪除
+                </button>
               </div>
-              <button
-                class="btn steps__del-btn"
-                @click="removeTodo(todoIdx)">
-                刪除
-              </button>
+              <!-- <div class="steps__sep-line"></div> -->
             </div>
             <div class="steps__add-step">
               <div class="steps__add-btn" @click="openNewInput">⨁</div>
@@ -78,7 +81,6 @@
                 @keyup.enter="addNewTodo"
                 @blur="showNewInput = false" />
             </div>
-            <!-- <div class="steps__sep-line"></div> -->
           </div>
         </div>
         <div slot="footer">
@@ -194,6 +196,7 @@ export default {
   methods: {
     openNewInput() {
       this.showNewInput = true;
+      this.newInput = '';
       this.$nextTick(() => {
         this.$refs.newInput.focus();
       });
@@ -231,6 +234,10 @@ export default {
       if (needUnsubscribe) this.getMonthTodos();
     },
     addNewTodo() {
+      if (this.newInput === '') {
+        this.showNewInput = false;
+        return;
+      }
       const newTodo = {
         id: '',
         descr: this.newInput,
@@ -312,6 +319,7 @@ export default {
       this.completedSteps = this.curDateTodos.steps.filter(step => step.status).length;
     },
     checkCalendar() {
+      this.calendarAttrs.splice(1);
       const dotAttrs = {
         dot: {
           backgroundColor: '#D8D8D8',
@@ -401,14 +409,19 @@ export default {
   margin: 0 3rem;
 
   &__card {
-    min-height: calc(100vh / 9 * 6);
+    height: calc(100vh / 9 * 6);
     margin-bottom: 2rem;
   }
 
+  &__todos {
+    height: calc(100vh / 9 * 3);
+  }
+
   &__ul {
-    min-height: calc(100vh / 9 * 2.5);
+    max-height: calc(100vh / 9 * 2.6);
     position: relative;
     margin-top: 1.5rem;
+    overflow-y: scroll;
   }
 
   &__sep-line {
