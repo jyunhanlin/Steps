@@ -51,8 +51,8 @@
                     class="input"
                     :value="todo.descr"
                     @input="changeUpdateInput"
-                    @keyup.enter="updateTodo(todoIdx, todo.descr)"
-                    @keyup.esc="curTodoIdx = -1"
+                    @keypress.enter="updateTodo(todoIdx, todo.descr)"
+                    @keypress.esc="curTodoIdx = -1"
                     @blur="curTodoIdx = -1"
                     />
                 </div>
@@ -78,7 +78,7 @@
                 v-model="newInput"
                 type="text"
                 class="input"
-                @keyup.enter="addNewTodo"
+                @keypress.enter="addNewTodo"
                 @blur="showNewInput = false" />
             </div>
           </div>
