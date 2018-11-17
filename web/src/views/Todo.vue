@@ -187,7 +187,7 @@ export default {
   },
   mounted() {
     this.getMonthTodos();
-    window.addEventListener('keydown', (e) => {
+    window.addEventListener('keyup', (e) => {
       if (e.altKey && e.keyCode === 78) {
         this.openNewInput();
       }
@@ -196,7 +196,6 @@ export default {
   methods: {
     openNewInput() {
       this.showNewInput = true;
-      this.newInput = '';
       this.$nextTick(() => {
         this.$refs.newInput.focus();
       });
