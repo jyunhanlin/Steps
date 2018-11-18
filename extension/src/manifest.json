@@ -1,7 +1,7 @@
 {
   "name": "steps",
   "description": "A web extension for steps",
-  "version": null,
+  "version": "1.0.0",
   "manifest_version": 2,
   "icons": {
     "48": "icons/icon_48.png",
@@ -11,13 +11,7 @@
     "default_title": "steps",
     "default_popup": "popup/popup.html"
   },
-  "background": {
-    "scripts": [
-      "background.js"
-    ]
-  },
-  "options_ui": {
-    "page": "options/options.html",
-    "chrome_style": true
+  "chrome_url_overrides": {
+    "newtab": "newTab/newTab.html"
   }
 }

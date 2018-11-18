@@ -1,3 +1,4 @@
+const path = require('path');
 const webpack = require('webpack');
 const ejs = require('ejs');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
@@ -7,16 +8,23 @@ const ChromeExtensionReloader = require('webpack-chrome-extension-reloader');
 const { VueLoaderPlugin } = require('vue-loader');
 const { version } = require('./package.json');
 
+function transformHtml(content) {
+  return ejs.render(content.toString(), {
+    ...process.env,
+  });
+}
+
 const config = {
   mode: process.env.NODE_ENV,
-  context: __dirname + '/src',
+  context: path.join(__dirname, '/src'),
   entry: {
-    'background': './background.js',
+    // background: './background.js',
     'popup/popup': './popup/popup.js',
-    'options/options': './options/options.js',
+    // 'options/options': './options/options.js',
+    'newTab/newTab': './newTab/newTab.js',
   },
   output: {
-    path: __dirname + '/dist',
+    path: path.join(__dirname, '/dist'),
     filename: '[name].js',
   },
   resolve: {
@@ -62,7 +70,8 @@ const config = {
     new CopyWebpackPlugin([
       { from: 'icons', to: 'icons', ignore: ['icon.xcf'] },
       { from: 'popup/popup.html', to: 'popup/popup.html', transform: transformHtml },
-      { from: 'options/options.html', to: 'options/options.html', transform: transformHtml },
+      // { from: 'options/options.html', to: 'options/options.html', transform: transformHtml },
+      { from: 'newTab/newTab.html', to: 'newTab/newTab.html', transform: transformHtml },
       {
         from: 'manifest.json',
         to: 'manifest.json',
@@ -71,7 +80,7 @@ const config = {
           jsonContent.version = version;
 
           if (config.mode === 'development') {
-            jsonContent['content_security_policy'] = "script-src 'self' 'unsafe-eval'; object-src 'self'";
+            jsonContent.content_security_policy = "script-src 'self' 'unsafe-eval'; object-src 'self'";
           }
 
           return JSON.stringify(jsonContent, null, 2);
@@ -98,12 +107,6 @@ if (process.env.HMR === 'true') {
   config.plugins = (config.plugins || []).concat([
     new ChromeExtensionReloader(),
   ]);
-}
-
-function transformHtml(content) {
-  return ejs.render(content.toString(), {
-    ...process.env,
-  });
 }
 
 module.exports = config;
