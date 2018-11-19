@@ -29,34 +29,65 @@
                       :checked="todo.status">
                     <label
                       :for="`hidden-ckb${todoIdx}`"
-                      class="steps__ckb">
+                      class="steps__ckb"
+                      @click="updateTodoStatus(todoIdx)">
                     </label>
                     <div
+                      v-if="todoIdx !== curTodoIdx"
                       class="steps__descr"
-                      :class="{ 'steps__descr--complete' : todo.status }">
+                      :class="{ 'steps__descr--complete' : todo.status }"
+                      @click="openUpdateInput(todoIdx)">
                       {{todo.descr}}
                     </div>
+                    <input
+                      v-show="todoIdx === curTodoIdx"
+                      :ref="`updateInput${todoIdx}`"
+                      type="text"
+                      class="steps__input"
+                      :value="todo.descr"
+                      @input="changeUpdateInput"
+                      @keypress.enter="updateTodo(todoIdx, todo.descr)"
+                      @keypress.esc="curTodoIdx = -1"
+                      @blur="curTodoIdx = -1"/>
                   </div>
                   <div class="steps__li--right"></div>
                 </div>
               </div>
             </div>
-            <div class="steps__add">增加</div>
+            <div class="steps__add">
+              <div
+                v-if="!showNewInput"
+                class="steps__add--descr"
+                @click="openNewInput">
+                按下 alt + n 以新增
+              </div>
+              <div v-if="!showNewInput" class="steps__add--btn" @click="openNewInput">⨁</div>
+              <input
+                v-show="showNewInput"
+                ref="newInput"
+                v-model="newInput"
+                type="text"
+                class="steps__input"
+                placeholder="新建事項..."
+                @keypress.enter="addNewTodo"
+                @blur="showNewInput = false" />
+            </div>
           </div>
         </div>
         <div slot="footer">
-          <div class="steps__chart">
+          <div class="steps__chart" v-if="userId">
             <radial-progress-bar
               startColor="#32C373"
               stopColor="#32C373"
               innerStrokeColor="#D8D8D8"
               :diameter="100"
               :strokeWidth="5"
-              :completed-steps="3"
-              :total-steps="8"
+              :completed-steps="completedSteps"
+              :total-steps="totalSteps"
               :animateSpeed="300">
-              <p>{{`${Math.round(3 / 8 * 100)}%`}}</p>
+              <p>{{`${Math.round(completedSteps / totalSteps * 100)}%`}}</p>
             </radial-progress-bar>
+            <Bar :height="55" :width="300" :chart-data="barData"/>
           </div>
         </div>
       </Card>
@@ -71,9 +102,10 @@ import * as authService from '../services/auth';
 import { db } from '../services/firebase';
 
 import Card from './components/Card';
+import Bar from './components/Bar';
 
 export default {
-  components: { Card, RadialProgressBar },
+  components: { Card, RadialProgressBar, Bar },
   data() {
     return {
       userId: null,
@@ -84,32 +116,164 @@ export default {
         date: dayjs(this.today).unix(),
         steps: [],
       },
+      cur7DaysTodos: {},
+      showNewInput: false,
+      newInput: '',
+      curTodoIdx: -1,
+      updateInput: '',
+      firebaseUnsubscribe: null,
+      barData: null,
     };
   },
   mounted() {
+    window.addEventListener('keyup', (e) => {
+      if (e.altKey && e.keyCode === 78) {
+        this.openNewInput();
+      }
+    });
     setInterval(() => {
       this.currentTime = dayjs().format('h:mm A');
     }, 1000);
     authService.checkAuthStateChanged((user) => {
       if (user) {
         this.userId = user.uid;
-        this.getCurDateTodos();
+        this.get7DaysTodos();
+      } else {
+        this.curDateTodos.steps.push(
+          {
+            id: '',
+            descr: '安裝Steps chrome extension',
+            status: true,
+            subDescr: '',
+          },
+          {
+            id: '',
+            descr: '註冊並登入Steps!',
+            status: false,
+            subDescr: '點擊瀏覽器右上角的Steps logo就可以開始註冊登入',
+          },
+          {
+            id: '',
+            descr: '開始使用',
+            status: false,
+            subDescr: '',
+          },
+        );
       }
     });
   },
+  computed: {
+    completedSteps() {
+      return this.curDateTodos.steps.filter(step => step.status).length;
+    },
+    totalSteps() {
+      return this.curDateTodos.steps.length || 1;
+    },
+  },
   methods: {
-    getCurDateTodos() {
+    get7DaysTodos() {
       if (this.userId) {
-        db.collection(this.userId).doc(this.today)
-          .onSnapshot((doc) => {
-            if (doc.exists) {
-              console.log('Document data:', doc.data());
-              this.curDateTodos = doc.data();
+        const today = dayjs(this.today).unix();
+        const last7Days = dayjs(dayjs(this.today).subtract(6, 'days').format('YYYY-MM-DD')).unix();
+
+        if (this.firebaseUnsubscribe) {
+          console.log('unsubscribe first');
+          this.firebaseUnsubscribe();
+        }
+
+        this.firebaseUnsubscribe = db.collection(this.userId)
+          .where('date', '>=', last7Days).where('date', '<=', today)
+          .onSnapshot((querySnapshot) => {
+            querySnapshot.forEach((doc) => {
+              // doc.data() is never undefined for query doc snapshots
+              // console.log(doc.id, doc.data());
+              this.cur7DaysTodos[doc.id] = doc.data();
+            });
+            if ({}.hasOwnProperty.call(this.cur7DaysTodos, this.today)) {
+              this.curDateTodos = this.cur7DaysTodos[this.today];
             }
+            this.checkBar();
           }, (err) => {
-            console.log(err);
+            console.log('query error: ', err);
           });
       }
+    },
+    openNewInput() {
+      this.showNewInput = true;
+      this.$nextTick(() => {
+        this.$refs.newInput.focus();
+      });
+    },
+    openUpdateInput(idx) {
+      this.curTodoIdx = idx;
+      this.$nextTick(() => {
+        this.$refs[`updateInput${idx}`][0].focus();
+      });
+    },
+    addNewTodo() {
+      if (this.newInput === '') {
+        this.showNewInput = false;
+        return;
+      }
+      const newTodo = {
+        id: '',
+        descr: this.newInput,
+        subDescr: '',
+        status: false,
+      };
+      this.curDateTodos.steps.push(newTodo);
+      this.showNewInput = false;
+      this.newInput = '';
+      // this.checkCircleProgress();
+      this.updateCurDateTodosInFirebase();
+      this.$el.querySelector('.steps__ul').scrollTop = this.$el.querySelector('.steps__ul').scrollHeight;
+    },
+    updateTodoStatus(idx) {
+      this.curDateTodos.steps[idx].status = !this.curDateTodos.steps[idx].status;
+      // this.checkCircleProgress();
+      this.updateCurDateTodosInFirebase();
+    },
+    changeUpdateInput(e) {
+      this.updateInput = e.target.value;
+    },
+    updateTodo(idx, descr) {
+      if (this.updateInput === '') this.updateInput = descr;
+      this.curDateTodos.steps[idx].descr = this.updateInput;
+      this.curTodoIdx = -1;
+      // this.checkCircleProgress();
+      this.updateCurDateTodosInFirebase();
+    },
+    updateCurDateTodosInFirebase() {
+      db.collection(this.userId).doc(this.today).set(this.curDateTodos);
+    },
+    checkBar() {
+      const result = {};
+      result.labels = [];
+      result.datasets = [];
+      const dateset = {
+        backgroundColor: [],
+        data: [],
+      };
+      for (let i = 6; i >= 0; i -= 1) {
+        const date = dayjs(this.today).subtract(i, 'day').format('YYYY-MM-DD');
+        let todosLen = 0;
+        if ({}.hasOwnProperty.call(this.cur7DaysTodos, date)) {
+          todosLen = this.cur7DaysTodos[date].steps.length;
+        }
+        result.labels.push(date);
+        dateset.data.push(todosLen);
+      }
+      dateset.backgroundColor = [
+        '#D8D8D8',
+        '#D8D8D8',
+        '#D8D8D8',
+        '#D8D8D8',
+        '#D8D8D8',
+        '#D8D8D8',
+        '#878787',
+      ];
+      result.datasets.push(dateset);
+      this.barData = result;
     },
   },
 };
@@ -175,7 +339,7 @@ export default {
   }
 
   &__ul {
-    max-height: 15rem;
+    max-height: 13rem;
     overflow-y: scroll;
   }
 
@@ -200,7 +364,8 @@ export default {
   }
 
   &__hidden-ckb:checked + &__ckb {
-    background-color: black;
+    background-color: #EAEAEA;
+    border: none;
   }
 
   &__ckb {
@@ -208,7 +373,7 @@ export default {
     display: block;
     // width: 1rem;
     height: 1rem;
-    border: 1px solid black;
+    border: 1px solid #979797;
     margin-top: .2rem;
     margin-right: 1rem;
   }
@@ -225,6 +390,36 @@ export default {
     // border: 1px solid red;
     &--complete {
       text-decoration: line-through;
+      color: #979797;
+    }
+  }
+
+  &__add {
+    display: flex;
+    margin-top: 1rem;
+
+    &--descr {
+      margin-left: -1rem;
+      color: #979797;
+      transform: scale(.8);
+    }
+
+    &--btn {
+      color: #32C373;
+      cursor: pointer;
+    }
+  }
+
+  &__input {
+    font-size: inherit;
+    font-family: inherit;
+    border: none;
+    width: 100%;
+    border-bottom: 1px solid #e5e9ec;
+    transition: 0.5s;
+    &:focus {
+      outline: none;
+      border-color: rgb(45, 179, 116);
     }
   }
 }
