@@ -13,9 +13,12 @@
   },
   "dependencies": {
     "axios": "^0.18.0",
+    "chart.js": "^2.7.3",
     "dayjs": "^1.7.7",
     "firebase": "^5.5.8",
     "vue": "^2.5.17",
+    "vue-chartjs": "^3.4.0",
+    "vue-radial-progress": "^0.2.10",
     "vue-router": "^3.0.1",
     "vuex": "^3.0.1",
     "webextension-polyfill": "^0.3.1"
