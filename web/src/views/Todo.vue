@@ -287,31 +287,33 @@ export default {
       db.collection(this.userId).doc(this.currentDate).set(this.curDateTodos);
     },
     getMonthTodos() {
-      const endOfMonth = dayjs(dayjs(this.currentDate).endOf('month').format('YYYY-MM-DD')).unix();
-      const startOfMonth = dayjs(dayjs(this.currentDate).startOf('month').format('YYYY-MM-DD')).unix();
+      if (this.userId) {
+        const endOfMonth = dayjs(dayjs(this.currentDate).endOf('month').format('YYYY-MM-DD')).unix();
+        const startOfMonth = dayjs(dayjs(this.currentDate).startOf('month').format('YYYY-MM-DD')).unix();
 
-      if (this.firebaseUnsubscribe) {
-        console.log('unsubscribe first');
-        this.firebaseUnsubscribe();
-      }
+        if (this.firebaseUnsubscribe) {
+          console.log('unsubscribe first');
+          this.firebaseUnsubscribe();
+        }
 
-      this.firebaseUnsubscribe = db.collection(this.userId)
-        .where('date', '>=', startOfMonth).where('date', '<=', endOfMonth)
-        .onSnapshot((querySnapshot) => {
-          querySnapshot.forEach((doc) => {
-            // doc.data() is never undefined for query doc snapshots
-            // console.log(doc.id, doc.data());
-            this.curMonthTodos[doc.id] = doc.data();
+        this.firebaseUnsubscribe = db.collection(this.userId)
+          .where('date', '>=', startOfMonth).where('date', '<=', endOfMonth)
+          .onSnapshot((querySnapshot) => {
+            querySnapshot.forEach((doc) => {
+              // doc.data() is never undefined for query doc snapshots
+              // console.log(doc.id, doc.data());
+              this.curMonthTodos[doc.id] = doc.data();
+            });
+            if ({}.hasOwnProperty.call(this.curMonthTodos, this.currentDate)) {
+              this.curDateTodos = this.curMonthTodos[this.currentDate];
+            }
+            this.checkCircleProgress();
+            this.checkCalendar();
+            this.checkBar();
+          }, (err) => {
+            console.log('query error: ', err);
           });
-          if ({}.hasOwnProperty.call(this.curMonthTodos, this.currentDate)) {
-            this.curDateTodos = this.curMonthTodos[this.currentDate];
-          }
-          this.checkCircleProgress();
-          this.checkCalendar();
-          this.checkBar();
-        }, (err) => {
-          console.log('query error: ', err);
-        });
+      }
     },
     checkCircleProgress() {
       this.totalSteps = this.curDateTodos.steps.length || 1;
@@ -380,6 +382,15 @@ export default {
       dateArray.shift();
       return dateArray.join('/');
     },
+  },
+  beforeRouteEnter(to, from, next) {
+    authService.checkAuthStateChanged((user) => {
+      if (user) {
+        next();
+      } else {
+        next('/login');
+      }
+    });
   },
 };
 </script>

@@ -1,6 +1,5 @@
 import Vue from 'vue';
 import Router from 'vue-router';
-import { auth } from './services/firebase';
 import Login from '../src/views/Login.vue';
 import Todo from '../src/views/Todo.vue';
 
@@ -32,17 +31,5 @@ const router = new Router({
     return { x: 0, y: 0 };
   },
 });
-
-router.beforeEach((to, from, next) => {
-  const { currentUser } = auth;
-  const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
-
-  if (requiresAuth && !currentUser) {
-    next('/login');
-  } else {
-    next();
-  }
-});
-
 
 export default router;
