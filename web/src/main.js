@@ -5,9 +5,6 @@ import 'v-calendar/lib/v-calendar.min.css';
 
 import App from './App.vue';
 import router from './router';
-// import store from './store';
-import * as authService from './services/auth';
-
 
 import './styles/main.scss';
 
@@ -24,14 +21,7 @@ Vue.component('v-calendar', Calendar);
 
 Vue.config.productionTip = false;
 
-let app;
-authService.checkAuthStateChanged(() => {
-  if (!app) {
-    app = new Vue({
-      router,
-      // store,
-      render: h => h(App),
-    }).$mount('#app');
-  }
-});
-
+new Vue({
+  router,
+  render: h => h(App),
+}).$mount('#app');
