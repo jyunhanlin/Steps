@@ -24,7 +24,7 @@ export default {
   width: 100%;
   height: 100%;
   box-shadow: 0px 0px 8px 2px rgba(0,0,0,0.1);
-  border-radius: .8rem;
+  border-radius: .8rem .8rem 0 0;
   padding: 2rem 3rem;
 
   &__header {

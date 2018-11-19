@@ -10,12 +10,12 @@
             <div class="todos__li--left">
               <input
                 type="checkbox"
-                class="todos__hidden-check"
-                :id="`hidden-check${todoIdx}`"
+                class="todos__hidden-ckb"
+                :id="`hidden-ckb${todoIdx}`"
                 :checked="todo.status">
               <label
                 class="todos__ckb"
-                :for="`hidden-check${todoIdx}`"
+                :for="`hidden-ckb${todoIdx}`"
                 @click="updateTodoStatus(todoIdx)">
               </label>
               <div
@@ -66,15 +66,17 @@ export default {
         });
     },
     getCurDateTodos() {
-      db.collection(this.userId).doc(this.today)
-        .onSnapshot((doc) => {
-          if (doc.exists) {
-            console.log('Document data:', doc.data());
-            this.curDateTodos = doc.data();
-          }
-        }, (err) => {
-          console.log(err);
-        });
+      if (this.userId) {
+        db.collection(this.userId).doc(this.today)
+          .onSnapshot((doc) => {
+            if (doc.exists) {
+              console.log('Document data:', doc.data());
+              this.curDateTodos = doc.data();
+            }
+          }, (err) => {
+            console.log(err);
+          });
+      }
     },
     updateTodoStatus(idx) {
       this.curDateTodos.steps[idx].status = !this.curDateTodos.steps[idx].status;
@@ -83,6 +85,15 @@ export default {
     updateCurDateTodosInFirebase() {
       db.collection(this.userId).doc(this.today).set(this.curDateTodos);
     },
+  },
+  beforeRouteEnter(to, from, next) {
+    authService.checkAuthStateChanged((user) => {
+      if (user) {
+        next();
+      } else {
+        next('/login');
+      }
+    });
   },
 };
 </script>
@@ -123,11 +134,11 @@ export default {
     }
   }
 
-  &__hidden-check {
+  &__hidden-ckb {
     display: none;
   }
 
-  &__hidden-check:checked + &__ckb {
+  &__hidden-ckb:checked + &__ckb {
     background-color: black;
   }
 
