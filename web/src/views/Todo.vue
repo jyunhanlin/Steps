@@ -69,7 +69,7 @@
                 v-if="!showNewInput"
                 class="steps__add-descr"
                 @click="openNewInput">
-                按下 alt + n 以新增
+                按下 alt + n 以新增  <img src="../plus.svg" style="height:1.25rem; transform:translateY(4px); opacity:0.8;">
               </div>
               <input
                 v-show="showNewInput"
@@ -89,12 +89,13 @@
               startColor="#32C373"
               stopColor="#32C373"
               innerStrokeColor="#D8D8D8"
-              :diameter="100"
-              :strokeWidth="5"
+              :diameter="160"
+              :strokeWidth="7"
               :completed-steps="completedSteps"
               :total-steps="totalSteps"
-              :animateSpeed="300">
-              <p>{{`${Math.round(completedSteps / totalSteps * 100)}%`}}</p>
+              :animateSpeed="400"
+              :timingFunc="timingFunc">
+              <p class="complete-percnetage">{{`${Math.round(completedSteps / totalSteps * 100)}%`}}</p>
             </radial-progress-bar>
             <Bar :height="75" :width="300" :chart-data="barData"/>
           </div>
@@ -138,6 +139,7 @@ export default {
   },
   data() {
     return {
+      timingFunc: 'cubic-bezier(0.4, 0.0, 0.2, 1)',
       currentDate: dayjs().format('YYYY-MM-DD'),
       calendarAttrs: [
         {
@@ -394,11 +396,16 @@ export default {
   display: grid;
   grid-template-columns: 1fr repeat(7, minmax(min-content, 12rem)) 1fr;
   grid-template-rows: repeat(9, calc(100vh / 9));
+  height:100vh;
+  overflow: hidden;
+  padding-top:40px;
+  background:#f4f4f4;
 }
 
 .moutain {
   grid-column: 2 / 4;
-  grid-row: 3 / 8;
+  grid-row: 2 / 6;
+  transform:translateX(2.5rem);
 }
 
 .tips {
@@ -409,7 +416,7 @@ export default {
 
 .steps {
   grid-column: 4 / 7;
-  grid-row: 3 / 9;
+  grid-row: 2 / 8;
   margin: 0 4rem;
 
   &__card {
@@ -422,7 +429,7 @@ export default {
   }
 
   &__ul {
-    max-height: calc(100vh / 9 * 2.6);
+    max-height: calc(100vh / 9 * 2.4);
     position: relative;
     margin-top: 1.5rem;
     overflow-y: scroll;
@@ -497,7 +504,13 @@ export default {
   }
 
   &__add-step {
+    padding-top:5px;
     display: flex;
+    margin-bottom:50px;
+    input{
+      font-size: 1.75rem;
+      line-height: 2rem;
+    }
   }
 
   &__add-btn {
@@ -514,6 +527,7 @@ export default {
     cursor: pointer;
     color:rgba(0,0,0,0.4);
     letter-spacing:1px;
+    font-size:1.25rem;
   }
 
   &__charts {
@@ -526,13 +540,15 @@ export default {
 
 .calendar {
   grid-column: 7 / 9;
-  grid-row: 3 / 6;
+  grid-row: 2 / 5;
+  transform:translateX(-2.5rem);
+
 }
 
 .current-date {
   user-select: none;
   grid-column: 5 / 6;
-  grid-row: 2 / 3;
+  grid-row: 1 / 2;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -555,13 +571,28 @@ export default {
 }
 
 .logout {
-  position: absolute;
-  bottom: 0;
-  right: 0;
+  // position: absolute;
+  // bottom: 0;
+  // right: 0;
+  
   padding: 1.5rem 2.5rem;
+  grid-column: 8 / 9;
+  grid-row: 8 / 9;
+  transform:translateX(2.5rem);
 
   &__btn {
     font-size: 1.5rem;
+    color:#c0c0c0;
+    letter-spacing:1px;
+    border:1px solid rgba(0,0,0,0)!important;
+    border-radius:20px;
+    padding:3px 10px;
+    transition:0.3s;
+    background: transparent;
+  }
+  &__btn:hover {
+    background: #fff;
+    color:#c2c2c2;
   }
 }
 
@@ -590,6 +621,11 @@ export default {
     outline: none;
     border-color: rgb(45, 179, 116);
   }
+}
+.complete-percnetage{
+  font-size: 6rem;
+  font-weight:200;
+  color:#c4c4c4;
 }
 </style>
 
