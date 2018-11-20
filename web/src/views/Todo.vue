@@ -53,8 +53,7 @@
                     @input="changeUpdateInput"
                     @keypress.enter="updateTodo(todoIdx, todo.descr)"
                     @keypress.esc="curTodoIdx = -1"
-                    @blur="curTodoIdx = -1"
-                    />
+                    @blur="curTodoIdx = -1" />
                 </div>
                 <button
                   class="btn steps__del-btn"
@@ -181,9 +180,15 @@ export default {
         steps: [],
       },
       firebaseUnsubscribe: null,
-      totalSteps: 1,
-      completedSteps: 0,
     };
+  },
+  computed: {
+    completedSteps() {
+      return this.curDateTodos.steps.filter(step => step.status).length;
+    },
+    totalSteps() {
+      return this.curDateTodos.steps.length || 1;
+    },
   },
   mounted() {
     this.getMonthTodos();
@@ -229,7 +234,6 @@ export default {
       if ({}.hasOwnProperty.call(this.curMonthTodos, this.currentDate)) {
         this.curDateTodos = this.curMonthTodos[this.currentDate];
       }
-      this.checkCircleProgress();
       if (needUnsubscribe) this.getMonthTodos();
     },
     addNewTodo() {
@@ -246,12 +250,10 @@ export default {
       this.curDateTodos.steps.push(newTodo);
       this.showNewInput = false;
       this.newInput = '';
-      this.checkCircleProgress();
       this.updateCurDateTodosInFirebase();
     },
     updateTodoStatus(idx) {
       this.curDateTodos.steps[idx].status = !this.curDateTodos.steps[idx].status;
-      this.checkCircleProgress();
       this.updateCurDateTodosInFirebase();
     },
     changeUpdateInput(e) {
@@ -261,7 +263,6 @@ export default {
       if (this.updateInput === '') this.updateInput = descr;
       this.curDateTodos.steps[idx].descr = this.updateInput;
       this.curTodoIdx = -1;
-      this.checkCircleProgress();
       this.updateCurDateTodosInFirebase();
     },
     removeTodo(idx) {
@@ -271,7 +272,6 @@ export default {
       if (sure) {
         this.curDateTodos.steps.splice(idx, 1);
       }
-      this.checkCircleProgress();
       this.updateCurDateTodosInFirebase();
     },
     logout() {
@@ -307,17 +307,12 @@ export default {
             if ({}.hasOwnProperty.call(this.curMonthTodos, this.currentDate)) {
               this.curDateTodos = this.curMonthTodos[this.currentDate];
             }
-            this.checkCircleProgress();
             this.checkCalendar();
             this.checkBar();
           }, (err) => {
             console.log('query error: ', err);
           });
       }
-    },
-    checkCircleProgress() {
-      this.totalSteps = this.curDateTodos.steps.length || 1;
-      this.completedSteps = this.curDateTodos.steps.filter(step => step.status).length;
     },
     checkCalendar() {
       this.calendarAttrs.splice(1);
@@ -373,7 +368,6 @@ export default {
       if ({}.hasOwnProperty.call(this.curMonthTodos, this.currentDate)) {
         this.curDateTodos = this.curMonthTodos[this.currentDate];
       }
-      this.checkCircleProgress();
     },
   },
   filters: {
