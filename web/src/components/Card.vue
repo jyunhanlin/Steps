@@ -23,7 +23,8 @@ export default {
 .card {
   width: 100%;
   height: 100%;
-  box-shadow: 0px 0px 42px 5px rgba(0,0,0,0.28);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+  background: white;
   border-radius: .8rem;
   padding: 2rem 3rem;
 

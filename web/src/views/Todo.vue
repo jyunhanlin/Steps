@@ -416,7 +416,7 @@ export default {
 .steps {
   grid-column: 4 / 7;
   grid-row: 3 / 9;
-  margin: 0 3rem;
+  margin: 0 4rem;
 
   &__card {
     height: calc(100vh / 9 * 6);
@@ -468,18 +468,19 @@ export default {
 
   &__ckb {
     display: inline-block;
-    width: 1rem;
-    height: 1rem;
-    border: 1px solid black;
+    width: 0.75rem;
+    height: 0.75rem;
+    border: 1px solid rgba(0,0,0,0.4);
+    transform:translateY(8px);
     position: relative;
-    margin-right: 2.5rem;
-
+    margin-right: 0.75rem;
+    cursor:pointer;
     &::after {
       content: '✓';
       position: absolute;
-      top: -1rem;
+      top: -6px;
       left: 0;
-      font-size: 2rem;
+      font-size: 1rem;
       opacity: 0;
     }
 
@@ -489,9 +490,11 @@ export default {
   }
 
   &__descr {
+    font-size:1.75rem;
+    color:rgba(0,0,0,1);
     &--complete {
       text-decoration: line-through;
-      font-style: italic;
+      color:rgba(0,0,0,0.4);
     }
   }
 
@@ -508,12 +511,15 @@ export default {
     margin-right: 1.5rem;
     font-size: 2rem;
     cursor: pointer;
+    display:none;
   }
 
   &__add-descr {
     width: 100%;
     line-height: 3rem;
     cursor: pointer;
+    color:rgba(0,0,0,0.4);
+    letter-spacing:1px;
   }
 
   &__charts {
@@ -530,6 +536,7 @@ export default {
 }
 
 .current-date {
+  user-select: none;
   grid-column: 5 / 6;
   grid-row: 2 / 3;
   display: flex;
@@ -537,7 +544,8 @@ export default {
   align-items: center;
 
   &__date {
-    font-size: 4rem;
+    font-size: 5rem;
+    font-weight:200;
   }
   &__right-arrow, &__left-arrow {
     cursor: pointer;
