@@ -32,7 +32,12 @@
       </div>
       <!-- <button @click="signout">sign out</button> -->
     </div>
-    <div class="todos__footer"></div>
+    <div class="todos__footer" v-if="curDateTodos.steps.length > 0">
+      <div class="todos__cur-status">
+        {{`${Math.round(completedSteps / totalSteps * 100)}%`}}
+      </div>
+      <progress class="todos__progress" :value="completedSteps" :max="totalSteps" />
+    </div>
   </div>
 </template>
 
@@ -51,6 +56,14 @@ export default {
         steps: [],
       },
     };
+  },
+  computed: {
+    totalSteps() {
+      return this.curDateTodos.steps.length || 1;
+    },
+    completedSteps() {
+      return this.curDateTodos.steps.filter(step => step.status).length;
+    },
   },
   mounted() {
     this.getCurDateTodos();
@@ -139,7 +152,8 @@ export default {
   }
 
   &__hidden-ckb:checked + &__ckb {
-    background-color: black;
+    background-color: #EAEAEA;
+    border: none;
   }
 
   &__ckb {
@@ -147,7 +161,7 @@ export default {
     display: block;
     // width: 1rem;
     height: 1rem;
-    border: 1px solid black;
+    border: 1px solid #979797;
     margin-top: .6rem;
     margin-right: .5rem;
   }
@@ -158,6 +172,34 @@ export default {
     // border: 1px solid red;
     &--complete {
       text-decoration: line-through;
+      color: #979797;
+    }
+  }
+
+  &__cur-status {
+    text-align: right;
+    color: #979797;
+    font-size: 2rem;
+  }
+
+  &__progress {
+    -webkit-appearance: none;
+    // margin-top: 0.75rem;
+    border-radius: 0;
+    height: 0.5rem;
+    display: block;
+    overflow: hidden;
+    padding: 0;
+    width: 100%;
+
+    &::-webkit-progress-bar {
+      // background: rgb(229, 233, 236);
+      background-color: rgb(229, 233, 236);
+    }
+
+    &::-webkit-progress-value {
+      background-color: #20B573;
+      transition: width .2s linear;
     }
   }
 }
