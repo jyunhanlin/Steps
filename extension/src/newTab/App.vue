@@ -54,7 +54,7 @@
                 </div>
               </div>
             </div>
-            <div class="steps__add">
+            <div class="steps__add" v-if="userId">
               <div
                 v-if="!showNewInput"
                 class="steps__add--descr"
@@ -74,8 +74,8 @@
             </div>
           </div>
         </div>
-        <div slot="footer">
-          <div class="steps__chart" v-if="userId">
+        <div slot="footer" v-if="userId">
+          <div class="steps__chart">
             <radial-progress-bar
               startColor="#32C373"
               stopColor="#32C373"
