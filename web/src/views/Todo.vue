@@ -75,6 +75,7 @@
                 v-show="showNewInput"
                 ref="newInput"
                 v-model="newInput"
+                placeholder="新增事項..."
                 type="text"
                 class="input"
                 @keypress.enter="addNewTodo"
@@ -88,9 +89,9 @@
             <radial-progress-bar
               startColor="#32C373"
               stopColor="#32C373"
-              innerStrokeColor="#D8D8D8"
-              :diameter="160"
-              :strokeWidth="7"
+              innerStrokeColor="#DfDfDf"
+              :diameter="90"
+              :strokeWidth="6"
               :completed-steps="completedSteps"
               :total-steps="totalSteps"
               :animateSpeed="400"
@@ -425,11 +426,11 @@ export default {
   }
 
   &__todos {
-    height: calc(100vh / 9 * 3);
+    height: calc(100vh / 9 * 3.6);
   }
 
   &__ul {
-    max-height: calc(100vh / 9 * 2.4);
+    max-height: calc(100vh / 9 * 3);
     position: relative;
     margin-top: 1.5rem;
     overflow-y: scroll;
@@ -447,7 +448,7 @@ export default {
   &__li {
     display: flex;
     justify-content: space-between;
-    padding: 0.5rem 0;
+    padding: 0.1rem 0;
     & * {
       flex: 0 0 auto;
     }
@@ -455,6 +456,11 @@ export default {
       display: flex;
       & * {
         flex: 0 0 auto;
+      }
+      input{
+        font-size: 1.5rem;
+        margin-top:1px;
+        margin-bottom:1px;
       }
     }
   }
@@ -491,7 +497,7 @@ export default {
   }
 
   &__descr {
-    font-size:1.75rem;
+    font-size:1.5rem;
     color:rgba(0,0,0,1);
     &--complete {
       text-decoration: line-through;
@@ -508,7 +514,7 @@ export default {
     display: flex;
     margin-bottom:50px;
     input{
-      font-size: 1.75rem;
+      font-size: 1.5rem;
       line-height: 2rem;
     }
   }
@@ -614,7 +620,7 @@ export default {
   color: inherit;
   width: 100%;
   border: none;
-  border-bottom: 1px solid #e5e9ec;
+  border-bottom: 2px solid #e5e9ec;
   transition: 0.5s;
 
   &:focus {
@@ -623,7 +629,7 @@ export default {
   }
 }
 .complete-percnetage{
-  font-size: 6rem;
+  font-size: 3rem;
   font-weight:200;
   color:#c4c4c4;
 }
