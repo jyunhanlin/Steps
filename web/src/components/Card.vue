@@ -30,6 +30,8 @@ export default {
 
   &__header {
     font-size: 1.8rem;
+    font-weight:500;
+    opacity:0.8;
   }
 
   &__hr {
