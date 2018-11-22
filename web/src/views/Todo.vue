@@ -69,7 +69,10 @@
                 v-if="!showNewInput"
                 class="steps__add-descr"
                 @click="openNewInput">
-                按下 alt + n 以新增  <img src="../plus.svg" style="height:1.25rem; transform:translateY(4px); opacity:0.8;">
+                按下 alt + n 以新增
+                <img
+                  src="../plus.svg"
+                  style="height:1.25rem; transform:translateY(4px); opacity:0.8;">
               </div>
               <input
                 v-show="showNewInput"
@@ -96,7 +99,10 @@
               :total-steps="totalSteps"
               :animateSpeed="400"
               :timingFunc="timingFunc">
-              <p class="complete-percnetage">{{`${Math.round(completedSteps / totalSteps * 100)}%`}}</p>
+              <p
+                class="complete-percnetage">
+                {{`${Math.round(completedSteps / totalSteps * 100)}%`}}
+              </p>
             </radial-progress-bar>
             <Bar :height="75" :width="300" :chart-data="barData"/>
           </div>
@@ -580,7 +586,6 @@ export default {
   // position: absolute;
   // bottom: 0;
   // right: 0;
-  
   padding: 1.5rem 2.5rem;
   grid-column: 8 / 9;
   grid-row: 8 / 9;
@@ -634,4 +639,3 @@ export default {
   color:#c4c4c4;
 }
 </style>
-
