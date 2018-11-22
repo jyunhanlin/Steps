@@ -125,6 +125,12 @@
       </Card>
     </div> -->
     <div class="logout">
+      <a
+        class="btn logout__btn logout__link"
+        href="https://docs.google.com/forms/d/e/1FAIpQLSdRKZooibBpjZ3cMmVZy7p9YVDUDKLYW-nSKapSnGH4JJPhRw/viewform?usp=sf_link"
+        target="_blank">
+        feedback
+      </a>
       <button class="btn logout__btn" @click="logout()">logout</button>
     </div>
   </div>
@@ -590,6 +596,7 @@ export default {
   grid-column: 8 / 9;
   grid-row: 8 / 9;
   transform:translateX(2.5rem);
+  display: flex;
 
   &__btn {
     font-size: 1.5rem;
@@ -600,10 +607,19 @@ export default {
     padding:3px 10px;
     transition:0.3s;
     background: transparent;
+
+    &:hover {
+      background: #fff;
+      color:#c2c2c2;
+    }
   }
-  &__btn:hover {
-    background: #fff;
-    color:#c2c2c2;
+
+  &__link {
+    &:link,
+    &:visited {
+      text-decoration: none;
+      line-height: 3rem;
+    }
   }
 }
 
