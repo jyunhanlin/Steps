@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import Router from 'vue-router';
 import Login from '../src/views/Login.vue';
-import Todo from '../src/views/Todo.vue';
+import Main from '../src/views/Main.vue';
 
 Vue.use(Router);
 
@@ -14,8 +14,8 @@ const routes = [
   },
   {
     path: '/',
-    name: 'todo',
-    component: Todo,
+    name: 'main',
+    component: Main,
     meta: { requiresAuth: true },
   },
 ];

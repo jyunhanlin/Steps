@@ -1,11 +1,25 @@
 <template>
   <div class="todo">
-    <div class="moutain">
+    <!-- <div class="mountain">
       <Card>
-        <div slot="header">Moutains</div>
-        <div slot="main">many things</div>
+        <div slot="header" class="mountain__header">
+          <div>Mountain</div>
+          <button class="btn mountain__btn">+</button>
+        </div>
+        <div slot="main" class="mountain__ul">
+          <div class="mountain__li">
+            <div class="mountain__li--left">
+              <input type="text" class="mountain__hidden-ckb">
+              <label for="" class="mountain__ckb"></label>
+              <span class="mountain__descr"></span>
+            </div>
+            <div class="mountain__li--right">
+
+            </div>
+          </div>
+        </div>
       </Card>
-    </div>
+    </div> -->
     <!-- <div class="tips">
       <Card>
         <div slot="main">many things</div>
@@ -19,93 +33,88 @@
     <div class="steps">
       <Card class="container steps__card">
         <div slot="header">Steps</div>
-        <div slot="main">
-          <div class="steps__todos">
-            <div class="steps__ul">
-              <div
-                class="steps__li"
-                v-for="(todo, todoIdx) in curDateTodos.steps"
-                :key="todo.descr + todoIdx">
-                <div class="steps__li--group">
-                  <input
-                    type="checkbox"
-                    class="steps__ckb--input"
-                    :id="`ckb-input${todoIdx}`"
-                    :checked="todo.status"/>
-                  <label
-                    :for="`ckb-input${todoIdx}`"
-                    class="steps__ckb"
-                    @click="updateTodoStatus(todoIdx)">
-                  </label>
-                  <span
-                    v-if="todoIdx !== curTodoIdx"
-                    class="steps__descr"
-                    :class="{ 'steps__descr--complete' : todo.status }"
-                    @click="openUpdateInput(todoIdx)">
-                    {{todo.descr}}
-                  </span>
-                  <input
-                    v-show="todoIdx === curTodoIdx"
-                    :ref="`updateInput${todoIdx}`"
-                    type="text"
-                    class="input"
-                    :value="todo.descr"
-                    @input="changeUpdateInput"
-                    @keypress.enter="updateTodo(todoIdx, todo.descr)"
-                    @keypress.esc="curTodoIdx = -1"
-                    @blur="curTodoIdx = -1" />
+        <div slot="main" class="steps__todos">
+          <div class="steps__ul">
+            <div
+              class="steps__li"
+              v-for="(todo, todoIdx) in curDateTodos.steps"
+              :key="todo.descr + todoIdx">
+              <div class="steps__li--group">
+                <input
+                  type="checkbox"
+                  class="steps__ckb--input"
+                  :id="`ckb-input${todoIdx}`"
+                  :checked="todo.status"/>
+                <label
+                  :for="`ckb-input${todoIdx}`"
+                  class="steps__ckb"
+                  @click="updateTodoStatus(todoIdx)">
+                </label>
+                <div
+                  v-if="todoIdx !== curTodoIdx"
+                  class="steps__descr"
+                  :class="{ 'steps__descr--complete' : todo.status }"
+                  @click="openUpdateInput(todoIdx)">
+                  {{todo.descr}}
                 </div>
-                <button
-                  class="btn steps__del-btn"
-                  @click="removeTodo(todoIdx)">
-                  刪除
-                </button>
+                <input
+                  v-show="todoIdx === curTodoIdx"
+                  :ref="`updateInput${todoIdx}`"
+                  type="text"
+                  class="input"
+                  :value="todo.descr"
+                  @input="changeUpdateInput"
+                  @keypress.enter="updateTodo(todoIdx, todo.descr)"
+                  @keypress.esc="curTodoIdx = -1"
+                  @blur="curTodoIdx = -1" />
               </div>
-              <!-- <div class="steps__sep-line"></div> -->
+              <button
+                class="btn steps__del-btn"
+                @click="removeTodo(todoIdx)">
+                刪除
+              </button>
             </div>
-            <div class="steps__add-step">
-              <div class="steps__add-btn" @click="openNewInput">⨁</div>
-              <div
-                v-if="!showNewInput"
-                class="steps__add-descr"
-                @click="openNewInput">
-                按下 alt + n 以新增
-                <img
-                  src="../plus.svg"
-                  style="height:1.25rem; transform:translateY(4px); opacity:0.8;">
-              </div>
-              <input
-                v-show="showNewInput"
-                ref="newInput"
-                v-model="newInput"
-                placeholder="新增事項..."
-                type="text"
-                class="input"
-                @keypress.enter="addNewTodo"
-                @blur="showNewInput = false" />
+            <!-- <div class="steps__sep-line"></div> -->
+          </div>
+          <div class="steps__add-step">
+            <div class="steps__add-btn" @click="openNewInput">⨁</div>
+            <div
+              v-if="!showNewInput"
+              class="steps__add-descr"
+              @click="openNewInput">
+              按下 alt + n 以新增
+              <img
+                src="../assets/plus.svg"
+                style="height:1.25rem; transform:translateY(4px); opacity:0.8;">
             </div>
+            <input
+              v-show="showNewInput"
+              ref="newInput"
+              v-model="newInput"
+              placeholder="新增事項..."
+              type="text"
+              class="input"
+              @keypress.enter="addNewTodo"
+              @blur="showNewInput = false" />
           </div>
         </div>
-        <div slot="footer">
-          <div class="steps__charts">
-            <!-- <Doughnut :height="100" :width="100"/> -->
-            <radial-progress-bar
-              startColor="#32C373"
-              stopColor="#32C373"
-              innerStrokeColor="#DfDfDf"
-              :diameter="90"
-              :strokeWidth="6"
-              :completed-steps="completedSteps"
-              :total-steps="totalSteps"
-              :animateSpeed="400"
-              :timingFunc="timingFunc">
-              <p
-                class="complete-percnetage">
-                {{`${Math.round(completedSteps / totalSteps * 100)}%`}}
-              </p>
-            </radial-progress-bar>
-            <Bar :height="75" :width="300" :chart-data="barData"/>
-          </div>
+        <div slot="footer" class="steps__charts">
+          <radial-progress-bar
+            startColor="#32C373"
+            stopColor="#32C373"
+            innerStrokeColor="#DfDfDf"
+            :diameter="90"
+            :strokeWidth="6"
+            :completed-steps="completedSteps"
+            :total-steps="totalSteps"
+            :animateSpeed="400"
+            :timingFunc="timingFunc">
+            <p
+              class="complete-percnetage">
+              {{`${Math.round(completedSteps / totalSteps * 100)}%`}}
+            </p>
+          </radial-progress-bar>
+          <Bar :height="75" :width="300" :chart-data="barData"/>
         </div>
       </Card>
     </div>
@@ -125,6 +134,7 @@
       </Card>
     </div> -->
     <div class="logout">
+      <button class="btn logout__btn" @click="showAbout = true">about</button>
       <a
         class="btn logout__btn logout__link"
         href="https://docs.google.com/forms/d/e/1FAIpQLSdRKZooibBpjZ3cMmVZy7p9YVDUDKLYW-nSKapSnGH4JJPhRw/viewform?usp=sf_link"
@@ -133,6 +143,7 @@
       </a>
       <button class="btn logout__btn" @click="logout()">logout</button>
     </div>
+    <About v-if="showAbout" @close="showAbout = false"/>
   </div>
 </template>
 
@@ -144,11 +155,12 @@ import * as authService from '../services/auth';
 import Card from '../components/Card.vue';
 import Doughnut from '../components/Doughnut';
 import Bar from '../components/Bar';
+import About from '../components/About.vue';
 
 export default {
   name: 'Todo',
   components: {
-    Bar, Card, Doughnut, RadialProgressBar,
+    Bar, Card, Doughnut, RadialProgressBar, About,
   },
   data() {
     return {
@@ -195,6 +207,7 @@ export default {
         steps: [],
       },
       firebaseUnsubscribe: null,
+      showAbout: false,
     };
   },
   computed: {
@@ -415,10 +428,19 @@ export default {
   background:#f4f4f4;
 }
 
-.moutain {
+.mountain {
   grid-column: 2 / 4;
   grid-row: 2 / 6;
   transform:translateX(2.5rem);
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  &__btn {
+    font-size: 2rem;
+  }
 }
 
 .tips {
@@ -466,6 +488,7 @@ export default {
     }
     &--group {
       display: flex;
+      width: 85%;
       & * {
         flex: 0 0 auto;
       }
@@ -473,6 +496,7 @@ export default {
         font-size: 1.5rem;
         margin-top:1px;
         margin-bottom:1px;
+        width: 100%;
       }
     }
   }
@@ -589,13 +613,13 @@ export default {
 }
 
 .logout {
-  // position: absolute;
-  // bottom: 0;
-  // right: 0;
+  position: absolute;
+  bottom: 3.5rem;
+  right: 3rem;
   padding: 1.5rem 2.5rem;
-  grid-column: 8 / 9;
-  grid-row: 8 / 9;
-  transform:translateX(2.5rem);
+  // grid-column: 8 / 9;
+  // grid-row: 8 / 9;
+  // transform:translateX(2.5rem);
   display: flex;
 
   &__btn {
@@ -607,6 +631,9 @@ export default {
     padding:3px 10px;
     transition:0.3s;
     background: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
     &:hover {
       background: #fff;
@@ -618,7 +645,7 @@ export default {
     &:link,
     &:visited {
       text-decoration: none;
-      line-height: 3rem;
+      // line-height: 3rem;
     }
   }
 }
