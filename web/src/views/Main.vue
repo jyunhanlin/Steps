@@ -32,48 +32,58 @@
     </div>
     <div class="steps">
       <Card class="container steps__card">
-        <div slot="header">Steps</div>
+        <div slot="header" class="steps__header">
+          <div>Steps</div>
+          <button class="btn" @click="enableGrab = !enableGrab">move</button>
+        </div>
         <div slot="main" class="steps__todos">
           <div class="steps__ul">
-            <div
-              class="steps__li"
-              v-for="(todo, todoIdx) in curDateTodos.steps"
-              :key="todo.descr + todoIdx">
-              <div class="steps__li--group">
-                <input
-                  type="checkbox"
-                  class="steps__ckb--input"
-                  :id="`ckb-input${todoIdx}`"
-                  :checked="todo.status"/>
-                <label
-                  :for="`ckb-input${todoIdx}`"
-                  class="steps__ckb"
-                  @click="updateTodoStatus(todoIdx)">
-                </label>
-                <div
-                  v-if="todoIdx !== curTodoIdx"
-                  class="steps__descr"
-                  :class="{ 'steps__descr--complete' : todo.status }"
-                  @click="openUpdateInput(todoIdx)">
-                  {{todo.descr}}
+            <draggable
+              v-model="curDateTodos.steps"
+              :options="{ handle:'.steps__move' }"
+              @change="updateCurDateTodosInFirebase">
+              <div
+                class="steps__li"
+                v-for="(todo, todoIdx) in curDateTodos.steps"
+                :key="todo.descr + todoIdx">
+                <div class="steps__li--group">
+                  <span class="steps__move" v-if="enableGrab">三</span>
+                  <input
+                    type="checkbox"
+                    class="steps__ckb--input"
+                    :id="`ckb-input${todoIdx}`"
+                    :checked="todo.status"/>
+                  <label
+                    v-if="!enableGrab"
+                    :for="`ckb-input${todoIdx}`"
+                    class="steps__ckb"
+                    @click="updateTodoStatus(todoIdx)">
+                  </label>
+                  <div
+                    v-if="todoIdx !== curTodoIdx"
+                    class="steps__descr"
+                    :class="{ 'steps__descr--complete' : todo.status }"
+                    @click="openUpdateInput(todoIdx)">
+                    {{todo.descr}}
+                  </div>
+                  <input
+                    v-show="todoIdx === curTodoIdx"
+                    :ref="`updateInput${todoIdx}`"
+                    type="text"
+                    class="input"
+                    :value="todo.descr"
+                    @input="changeUpdateInput"
+                    @keypress.enter="updateTodo(todoIdx, todo.descr)"
+                    @keypress.esc="curTodoIdx = -1"
+                    @blur="curTodoIdx = -1" />
                 </div>
-                <input
-                  v-show="todoIdx === curTodoIdx"
-                  :ref="`updateInput${todoIdx}`"
-                  type="text"
-                  class="input"
-                  :value="todo.descr"
-                  @input="changeUpdateInput"
-                  @keypress.enter="updateTodo(todoIdx, todo.descr)"
-                  @keypress.esc="curTodoIdx = -1"
-                  @blur="curTodoIdx = -1" />
+                <button
+                  class="btn steps__del-btn"
+                  @click="removeTodo(todoIdx)">
+                  刪除
+                </button>
               </div>
-              <button
-                class="btn steps__del-btn"
-                @click="removeTodo(todoIdx)">
-                刪除
-              </button>
-            </div>
+            </draggable>
             <!-- <div class="steps__sep-line"></div> -->
           </div>
           <div class="steps__add-step">
@@ -135,6 +145,7 @@
     </div> -->
     <div class="logout">
       <button class="btn logout__btn" @click="showAbout = true">about</button>
+      <About v-if="showAbout" @close="showAbout = false"/>
       <a
         class="btn logout__btn logout__link"
         href="https://docs.google.com/forms/d/e/1FAIpQLSdRKZooibBpjZ3cMmVZy7p9YVDUDKLYW-nSKapSnGH4JJPhRw/viewform?usp=sf_link"
@@ -143,13 +154,13 @@
       </a>
       <button class="btn logout__btn" @click="logout()">logout</button>
     </div>
-    <About v-if="showAbout" @close="showAbout = false"/>
   </div>
 </template>
 
 <script>
 import dayjs from 'dayjs';
 import RadialProgressBar from 'vue-radial-progress';
+import draggable from 'vuedraggable';
 import { auth, db } from '../services/firebase';
 import * as authService from '../services/auth';
 import Card from '../components/Card.vue';
@@ -160,7 +171,7 @@ import About from '../components/About.vue';
 export default {
   name: 'Todo',
   components: {
-    Bar, Card, Doughnut, RadialProgressBar, About,
+    Bar, Card, Doughnut, RadialProgressBar, About, draggable,
   },
   data() {
     return {
@@ -208,6 +219,7 @@ export default {
       },
       firebaseUnsubscribe: null,
       showAbout: false,
+      enableGrab: false,
     };
   },
   computed: {
@@ -459,6 +471,11 @@ export default {
     margin-bottom: 2rem;
   }
 
+  &__header {
+    display: flex;
+    justify-content: space-between;
+  }
+
   &__todos {
     height: calc(100vh / 9 * 3.6);
   }
@@ -501,12 +518,22 @@ export default {
     }
   }
 
-  &__li:hover &__del-btn {
+  &__li:hover &__del-btn,
+  &__li:hover &__move {
     opacity: 1;
   }
 
   &__ckb--input:checked + &__ckb::after {
     opacity: 1;
+  }
+
+  &__move {
+    cursor: grab;
+    display: inline-block;
+    width: 0.75rem;
+    margin-right: 0.75rem;
+    transform:translateY(.3rem);
+    opacity: 0;
   }
 
   &__ckb {

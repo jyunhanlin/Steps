@@ -25,7 +25,7 @@
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .about {
   position: fixed;
   top: 50%;
