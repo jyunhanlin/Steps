@@ -33,11 +33,13 @@
     <div class="steps">
       <Card class="container steps__card">
         <div slot="header" class="steps__header">
-          <div>Steps</div>
-          <button class="btn" @click="enableGrab = !enableGrab">move</button>
+          <div><img src="../stairs.png" alt=""> Steps</div>
+          <button class="btn move__toggle" @click="enableGrab = !enableGrab">
+            <img src="../shuffle_dark.png" :class="{'drag_enabled':enableGrab}">
+          </button>
         </div>
         <div slot="main" class="steps__todos">
-          <div class="steps__ul">
+          <div class="steps__ul" :class="{'drag_enabled':enableGrab}">
             <draggable
               v-model="curDateTodos.steps"
               :options="{ handle:'.steps__move' }"
@@ -47,7 +49,7 @@
                 v-for="(todo, todoIdx) in curDateTodos.steps"
                 :key="todo.descr + todoIdx">
                 <div class="steps__li--group">
-                  <span class="steps__move" v-if="enableGrab">三</span>
+                  <span class="steps__move" v-if="enableGrab"><img src="../menu.png" alt=""></span>
                   <input
                     type="checkbox"
                     class="steps__ckb--input"
@@ -57,6 +59,7 @@
                     v-if="!enableGrab"
                     :for="`ckb-input${todoIdx}`"
                     class="steps__ckb"
+                    :class="{ 'steps__ckb--complete' : todo.status }"
                     @click="updateTodoStatus(todoIdx)">
                   </label>
                   <div
@@ -107,8 +110,9 @@
               @keypress.enter="addNewTodo"
               @blur="showNewInput = false" />
           </div>
+          <p class="dragable-hint" :class="{'drag_enabled':enableGrab}">點擊右上角圖標以切換回一般模式</p>
         </div>
-        <div slot="footer" class="steps__charts">
+        <div slot="footer" class="steps__charts" :class="{'drag_enabled':enableGrab}">
           <radial-progress-bar
             startColor="#32C373"
             stopColor="#32C373"
@@ -143,9 +147,9 @@
         <div slot="main">user</div>
       </Card>
     </div> -->
+    <About v-if="showAbout" @close="showAbout = false"/>
     <div class="logout">
       <button class="btn logout__btn" @click="showAbout = true">about</button>
-      <About v-if="showAbout" @close="showAbout = false"/>
       <a
         class="btn logout__btn logout__link"
         href="https://docs.google.com/forms/d/e/1FAIpQLSdRKZooibBpjZ3cMmVZy7p9YVDUDKLYW-nSKapSnGH4JJPhRw/viewform?usp=sf_link"
@@ -484,7 +488,12 @@ export default {
     max-height: calc(100vh / 9 * 3);
     position: relative;
     margin-top: 1.5rem;
-    overflow-y: scroll;
+    overflow-y: auto;
+    transition:0.2s;
+    &.drag_enabled{
+      // transform:translateX(-10px);
+      margin-left:-20px;
+    }
   }
 
   &__sep-line {
@@ -500,6 +509,7 @@ export default {
     display: flex;
     justify-content: space-between;
     padding: 0.1rem 0;
+    transition:0.2s;
     & * {
       flex: 0 0 auto;
     }
@@ -510,21 +520,18 @@ export default {
         flex: 0 0 auto;
       }
       input{
-        font-size: 1.5rem;
-        margin-top:1px;
+        font-size: 1.6rem;
+        margin-top:0px;
         margin-bottom:1px;
         width: 100%;
+        transform:translateY(-1px);
       }
     }
   }
 
-  &__li:hover &__del-btn,
-  &__li:hover &__move {
-    opacity: 1;
-  }
-
-  &__ckb--input:checked + &__ckb::after {
-    opacity: 1;
+  &__li:hover &__del-btn{
+    transition:0.1s;
+    opacity: 0.5;
   }
 
   &__move {
@@ -533,25 +540,22 @@ export default {
     width: 0.75rem;
     margin-right: 0.75rem;
     transform:translateY(.3rem);
-    opacity: 0;
+    opacity: 0.8;
   }
 
   &__ckb {
     display: inline-block;
-    width: 0.75rem;
-    height: 0.75rem;
-    border: 1px solid rgba(0,0,0,0.4);
-    transform:translateY(8px);
+    width: 0.9rem;
+    height: 0.9rem;
+    border: 1px solid rgba(0,0,0,0.2);
+    transform:translateY(6px);
     position: relative;
     margin-right: 0.75rem;
     cursor:pointer;
-    &::after {
-      content: '✓';
-      position: absolute;
-      top: -6px;
-      left: 0;
-      font-size: 1rem;
-      opacity: 0;
+    transition:0.2s;
+    &--complete{
+      background: #888888;
+      border: 1px solid rgba(0,0,0,0);
     }
 
     &--input {
@@ -560,7 +564,7 @@ export default {
   }
 
   &__descr {
-    font-size:1.5rem;
+    font-size:1.6rem;
     color:rgba(0,0,0,1);
     &--complete {
       text-decoration: line-through;
@@ -577,7 +581,7 @@ export default {
     display: flex;
     margin-bottom:50px;
     input{
-      font-size: 1.5rem;
+      font-size: 1.6rem;
       line-height: 2rem;
     }
   }
@@ -597,6 +601,7 @@ export default {
     color:rgba(0,0,0,0.4);
     letter-spacing:1px;
     font-size:1.25rem;
+    font-weight: 500;
   }
 
   &__charts {
@@ -640,31 +645,35 @@ export default {
 }
 
 .logout {
-  position: absolute;
-  bottom: 3.5rem;
-  right: 3rem;
-  padding: 1.5rem 2.5rem;
+  // position: absolute;
+  // bottom: 3.5rem;
+  // right: 3rem;
+  // padding: 1.5rem 2.5rem;
   // grid-column: 8 / 9;
   // grid-row: 8 / 9;
   // transform:translateX(2.5rem);
+  grid-column: 7 / 9;
+  grid-row: 7/ 8;
+  transform:translateX(-2.5rem);
   display: flex;
+  justify-content: flex-end;
 
   &__btn {
+    height:2rem;
     font-size: 1.5rem;
-    color:#c0c0c0;
+    color:#d0d0d0;
     letter-spacing:1px;
     border:1px solid rgba(0,0,0,0)!important;
     border-radius:20px;
-    padding:3px 10px;
-    transition:0.3s;
+    padding:0px 10px;
+    transition:0.2s;
     background: transparent;
     display: flex;
     justify-content: center;
     align-items: center;
 
     &:hover {
-      background: #fff;
-      color:#c2c2c2;
+      color:#666666;
     }
   }
 
@@ -707,5 +716,43 @@ export default {
   font-size: 3rem;
   font-weight:200;
   color:#c4c4c4;
+}
+.move__toggle img{
+  opacity:0.3;
+  width:16px;
+  transform:translateY(2px);
+  transition:0.2s;
+  &.drag_enabled{
+    opacity:1;
+  }
+}
+header img{
+  width:18px;
+  opacity: 0.2;
+  transform: translateY(5px)
+}
+.steps__move{
+  height:1rem;
+  img{
+    width:16px;
+    transform:translate(-4px,1px);
+    opacity:0.6;
+  }
+}
+.steps__charts{
+  opacity:1;
+  transition:0.2s;
+  &.drag_enabled{
+    opacity:0;
+  }
+}
+.dragable-hint{
+  text-align: center;
+  opacity:0;
+  transition:0.2s;
+  font-weight: 500;
+  &.drag_enabled{
+    opacity:0.3;
+  }
 }
 </style>
