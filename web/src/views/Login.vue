@@ -1,7 +1,7 @@
 <template>
   <div class="login" ref="loginRef">
     <header>
-      <div class="login__title">Acheve your goals.</div>
+      <div class="login__title">Achieve your goals,</div>
       <div class="login__title">step by step.</div>
     </header>
     <main>
