@@ -1,30 +1,5 @@
 <template>
   <div class="todo">
-    <!-- <div class="mountain">
-      <Card>
-        <div slot="header" class="mountain__header">
-          <div>Mountain</div>
-          <button class="btn mountain__btn">+</button>
-        </div>
-        <div slot="main" class="mountain__ul">
-          <div class="mountain__li">
-            <div class="mountain__li--left">
-              <input type="text" class="mountain__hidden-ckb">
-              <label for="" class="mountain__ckb"></label>
-              <span class="mountain__descr"></span>
-            </div>
-            <div class="mountain__li--right">
-
-            </div>
-          </div>
-        </div>
-      </Card>
-    </div> -->
-    <!-- <div class="tips">
-      <Card>
-        <div slot="main">many things</div>
-      </Card>
-    </div> -->
     <div class="current-date">
       <span class="current-date__left-arrow" @click="changeDate(-1)">◀︎</span>
       <span class="current-date__date">{{currentDate | dateFormat}}</span>
@@ -33,13 +8,16 @@
     <div class="steps">
       <Card class="container steps__card">
         <div slot="header" class="steps__header">
-          <div><img src="../stairs.png" alt=""> Steps</div>
-          <button class="btn move__toggle" @click="enableGrab = !enableGrab">
-            <img src="../shuffle_dark.png" :class="{'drag_enabled':enableGrab}">
+          <div><img src="../assets/stairs.png" alt=""> Steps</div>
+          <button class="btn steps__icon" @click="enableGrab = !enableGrab">
+            <img
+              src="../assets/shuffle_dark.png"
+              class="steps__img"
+              :class="{'steps__img--dragging': enableGrab}">
           </button>
         </div>
         <div slot="main" class="steps__todos">
-          <div class="steps__ul" :class="{'drag_enabled':enableGrab}">
+          <div class="steps__ul" :class="{'steps__ul--dragging': enableGrab}">
             <draggable
               v-model="curDateTodos.steps"
               :options="{ handle:'.steps__move' }"
@@ -49,7 +27,9 @@
                 v-for="(todo, todoIdx) in curDateTodos.steps"
                 :key="todo.descr + todoIdx">
                 <div class="steps__li--group">
-                  <span class="steps__move" v-if="enableGrab"><img src="../menu.png" alt=""></span>
+                  <span class="steps__move" v-if="enableGrab">
+                    <img src="../assets/menu.png" alt="">
+                  </span>
                   <input
                     type="checkbox"
                     class="steps__ckb--input"
@@ -110,9 +90,9 @@
               @keypress.enter="addNewTodo"
               @blur="showNewInput = false" />
           </div>
-          <p class="dragable-hint" :class="{'drag_enabled':enableGrab}">點擊右上角圖標以切換回一般模式</p>
+          <p class="steps__hint" :class="{'steps__hint--dragging':enableGrab}">點擊右上角圖標以切換回一般模式</p>
         </div>
-        <div slot="footer" class="steps__charts" :class="{'drag_enabled':enableGrab}">
+        <div slot="footer" class="steps__charts" :class="{'steps__charts--dragging':enableGrab}">
           <radial-progress-bar
             startColor="#32C373"
             stopColor="#32C373"
@@ -124,7 +104,7 @@
             :animateSpeed="400"
             :timingFunc="timingFunc">
             <p
-              class="complete-percnetage">
+              class="steps__complete-percnetage">
               {{`${Math.round(completedSteps / totalSteps * 100)}%`}}
             </p>
           </radial-progress-bar>
@@ -142,11 +122,6 @@
         </div>
       </Card>
     </div>
-    <!-- <div class="user">
-      <Card>
-        <div slot="main">user</div>
-      </Card>
-    </div> -->
     <About v-if="showAbout" @close="showAbout = false"/>
     <div class="logout">
       <button class="btn logout__btn" @click="showAbout = true">about</button>
@@ -478,6 +453,22 @@ export default {
   &__header {
     display: flex;
     justify-content: space-between;
+
+    & div img {
+      width:18px;
+      opacity: 0.2;
+      transform: translateY(5px);
+    }
+  }
+
+  &__img {
+    opacity: 0.3;
+    width: 1.3rem;
+    transform: translateY(2px);
+    transition: 0.2s;
+    &--dragging{
+      opacity: 1;
+    }
   }
 
   &__todos {
@@ -490,7 +481,7 @@ export default {
     margin-top: 1.5rem;
     overflow-y: auto;
     transition:0.2s;
-    &.drag_enabled{
+    &--dragging{
       // transform:translateX(-10px);
       margin-left:-20px;
     }
@@ -541,6 +532,13 @@ export default {
     margin-right: 0.75rem;
     transform:translateY(.3rem);
     opacity: 0.8;
+
+    height:1rem;
+    & img{
+      width: 16px;
+      transform:translate(-4px,1px);
+      opacity:0.6;
+    }
   }
 
   &__ckb {
@@ -609,6 +607,30 @@ export default {
     flex-direction: column;
     // justify-content: center;
     align-items: center;
+
+    opacity:1;
+    transition:0.2s;
+    &--dragging{
+      opacity:0;
+    }
+  }
+
+
+  &__hint{
+    text-align: center;
+    opacity: 0;
+    transition: 0.2s;
+    font-weight: 500;
+
+    &--dragging{
+      opacity:0.3;
+    }
+  }
+
+  &__complete-percnetage {
+    font-size: 3rem;
+    font-weight:200;
+    color:#c4c4c4;
   }
 }
 
@@ -710,49 +732,6 @@ export default {
   &:focus {
     outline: none;
     border-color: rgb(45, 179, 116);
-  }
-}
-.complete-percnetage{
-  font-size: 3rem;
-  font-weight:200;
-  color:#c4c4c4;
-}
-.move__toggle img{
-  opacity:0.3;
-  width:16px;
-  transform:translateY(2px);
-  transition:0.2s;
-  &.drag_enabled{
-    opacity:1;
-  }
-}
-header img{
-  width:18px;
-  opacity: 0.2;
-  transform: translateY(5px)
-}
-.steps__move{
-  height:1rem;
-  img{
-    width:16px;
-    transform:translate(-4px,1px);
-    opacity:0.6;
-  }
-}
-.steps__charts{
-  opacity:1;
-  transition:0.2s;
-  &.drag_enabled{
-    opacity:0;
-  }
-}
-.dragable-hint{
-  text-align: center;
-  opacity:0;
-  transition:0.2s;
-  font-weight: 500;
-  &.drag_enabled{
-    opacity:0.3;
   }
 }
 </style>

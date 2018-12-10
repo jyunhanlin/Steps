@@ -10,12 +10,12 @@
           我們盡量將功能做的簡單直覺，因為我們每天的工作已經如此繁瑣，管理工具應該簡單點。<br><br>
           Steps的主要功能與操作如下：<br>
           <ul>
-            <li>-	新增事項：利用快捷鍵(alt+n)或點擊綠色加號</li>
-            <li>-	編輯事項：點擊您想編輯的事項</li>
-            <li>-	刪除事項：將滑鼠滑到該事項上，然後點擊右邊的刪除</li>
-            <li>-	改變事項順序：點擊事項清單右上角的圖示，切換為拖動模式</li>
+            <li>- 新增事項：利用快捷鍵(alt+n)或點擊綠色加號</li>
+            <li>- 編輯事項：點擊您想編輯的事項</li>
+            <li>- 刪除事項：將滑鼠滑到該事項上，然後點擊右邊的刪除</li>
+            <li>- 改變事項順序：點擊事項清單右上角的圖示，切換為拖動模式</li>
           </ul>
-          <br>          
+          <br>
           Steps是一個不斷精進的項目。您在使用的當下，我們也正在規劃、開發新功能。如果您對Steps有任何的改善建議（或許願想要什麼功能），請在改善與建議告訴我們。<br><br>
           最後，Steps是一個志願性質的項目，參與的人員羅列如下。很感謝所有對這個項目持續付出的人們：
           <ul>
@@ -25,10 +25,26 @@
         </p>
         <h2>Credits:</h2>
         <p>
-          <img src="../stairs.png" alt="" style="margin-right:1rem">
-          <img src="../shuffle_light.png" alt="" style="margin-right:1rem">
-          <img src="../shuffle_dark.png" alt=""><div>Icons made by <a href="https://www.freepik.com/" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" 			    title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" 			    title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
-          <img src="../menu.png" alt=""><div>Icons made by <a href="https://www.flaticon.com/authors/chris-veigt" title="Chris Veigt">Chris Veigt</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" 			    title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
+          <img src="../assets/stairs.png" alt="" style="margin-right:1rem">
+          <img src="../assets/shuffle_light.png" alt="" style="margin-right:1rem">
+          <img src="../assets/shuffle_dark.png" alt="">
+          <div>
+            Icons made by
+            <a href="https://www.freepik.com/" title="Freepik">Freepik</a>
+            from
+            <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>
+            is licensed by
+            <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a>
+          </div>
+          <img src="../assets/menu.png" alt="">
+          <div>
+            Icons made by
+            <a href="https://www.flaticon.com/authors/chris-veigt" title="Chris Veigt">Chris Veigt</a>
+            from
+            <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>
+            is licensed by
+            <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a>
+          </div>
         </p>
       </main>
       <footer class="about__footer">
