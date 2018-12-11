@@ -350,33 +350,36 @@ export default {
       this.calendarAttrs.push(dotAttrs);
     },
     checkBar() {
-      this.barData = {};
-      this.barData.labels = [];
-      this.barData.datasets = [];
-      const barDataSet = {
-        backgroundColor: [],
-        data: [],
-      };
-      for (let i = 6; i >= 0; i -= 1) {
-        const date = dayjs(this.currentDate).subtract(i, 'day').format('YYYY-MM-DD');
-        let todosLen = 0;
-        if ({}.hasOwnProperty.call(this.curMonthTodos, date)) {
-          todosLen = this.curMonthTodos[date].steps.length;
-        }
+      const diffDays = dayjs().diff(dayjs(this.currentDate), 'day');
+      if (diffDays >= 0 && diffDays < 7) {
+        this.barData = {};
+        this.barData.labels = [];
+        this.barData.datasets = [];
+        const barDataSet = {
+          backgroundColor: [],
+          data: [],
+        };
+        for (let i = 6; i >= 0; i -= 1) {
+          const date = dayjs().subtract(i, 'day').format('YYYY-MM-DD');
+          let todosLen = 0;
+          if ({}.hasOwnProperty.call(this.curMonthTodos, date)) {
+            todosLen = this.curMonthTodos[date].steps.length;
+          }
 
-        this.barData.labels.push(date);
-        barDataSet.data.push(todosLen);
+          this.barData.labels.push(date);
+          barDataSet.data.push(todosLen);
+        }
+        barDataSet.backgroundColor = [
+          '#D8D8D8',
+          '#D8D8D8',
+          '#D8D8D8',
+          '#D8D8D8',
+          '#D8D8D8',
+          '#D8D8D8',
+          '#878787',
+        ];
+        this.barData.datasets.push(barDataSet);
       }
-      barDataSet.backgroundColor = [
-        '#D8D8D8',
-        '#D8D8D8',
-        '#D8D8D8',
-        '#D8D8D8',
-        '#D8D8D8',
-        '#D8D8D8',
-        '#878787',
-      ];
-      this.barData.datasets.push(barDataSet);
     },
     dayClicked(day) {
       this.currentDate = dayjs(day.date).format('YYYY-MM-DD');
