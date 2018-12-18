@@ -60,11 +60,17 @@
                     @keypress.esc="curTodoIdx = -1"
                     @blur="curTodoIdx = -1" />
                 </div>
-                <button
+                <!-- <button
+                  v-if="!enableGrab"
                   class="btn steps__del-btn"
                   @click="removeTodo(todoIdx)">
-                  刪除
-                </button>
+                  ...
+                </button> -->
+                <MoreActions
+                  class="steps__more-actions"
+                  @moveToNextDay="moveToDay(todoIdx)"
+                  @moveTo="(day) => moveToDay(todoIdx, day)"
+                  @remove="removeTodo(todoIdx)"/>
               </div>
             </draggable>
             <!-- <div class="steps__sep-line"></div> -->
@@ -142,15 +148,17 @@ import RadialProgressBar from 'vue-radial-progress';
 import draggable from 'vuedraggable';
 import { auth, db } from '../services/firebase';
 import * as authService from '../services/auth';
+import * as dbService from '../services/db';
 import Card from '../components/Card.vue';
 import Doughnut from '../components/Doughnut';
 import Bar from '../components/Bar';
 import About from '../components/About.vue';
+import MoreActions from '../components/MoreActions.vue';
 
 export default {
   name: 'Todo',
   components: {
-    Bar, Card, Doughnut, RadialProgressBar, About, draggable,
+    Bar, Card, Doughnut, RadialProgressBar, About, draggable, MoreActions,
   },
   data() {
     return {
@@ -265,6 +273,7 @@ export default {
         descr: this.newInput,
         subDescr: '',
         status: false,
+        changeable: true,
       };
       this.curDateTodos.steps.push(newTodo);
       this.showNewInput = false;
@@ -390,6 +399,27 @@ export default {
       if ({}.hasOwnProperty.call(this.curMonthTodos, this.currentDate)) {
         this.curDateTodos = this.curMonthTodos[this.currentDate];
       }
+    },
+    moveToDay(idx, day = null) {
+      let targetDay;
+      if (day) targetDay = dayjs(day).format('YYYY-MM-DD');
+      else targetDay = dayjs(this.currentDate).add(1, 'day').format('YYYY-MM-DD');
+      dbService.getFirestore(this.userId, targetDay)
+        .then((doc) => {
+          let todos;
+          if (doc.exists) {
+            todos = doc.data();
+          } else {
+            todos = {
+              date: dayjs(targetDay).unix(),
+              steps: [],
+            };
+          }
+          todos.steps.push(this.curDateTodos.steps[idx]);
+          return dbService.setFirestore(this.userId, targetDay, todos);
+        }).catch((error) => {
+          console.log('Error getting document:', error);
+        });
     },
   },
   filters: {
@@ -713,28 +743,5 @@ export default {
 
 .container {
   height: auto;
-}
-
-.btn {
-  cursor: pointer;
-  border: none;
-  &:focus {
-    outline: none;
-  }
-}
-
-.input {
-  font-family: inherit;
-  font-size: inherit;
-  color: inherit;
-  width: 100%;
-  border: none;
-  border-bottom: 2px solid #e5e9ec;
-  transition: 0.5s;
-
-  &:focus {
-    outline: none;
-    border-color: rgb(45, 179, 116);
-  }
 }
 </style>
