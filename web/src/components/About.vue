@@ -51,7 +51,7 @@
         <button class="about__btn" @click="$emit('close')">關閉</button>
       </footer>
     </div>
-    <div class="backdrop" @click="$emit('close')"></div>
+    <div class="backdrop backdrop--gray" @click="$emit('close')"></div>
   </div>
 </template>
 
@@ -94,16 +94,6 @@
       outline: none;
     }
   }
-}
-
-.backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(#D8D8D8, .7);
-  z-index: 90;
 }
 </style>
 
