@@ -25,6 +25,44 @@ body {
 .fade-enter-active, .fade-leave-active {
   transition: opacity .5s;
 }
+
 .fade-enter, .fade-leave-active {
   opacity: 0;
+}
+
+.btn {
+  cursor: pointer;
+  border: none;
+  &:focus {
+    outline: none;
+  }
+}
+
+.input {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  width: 100%;
+  border: none;
+  border-bottom: 2px solid #e5e9ec;
+  transition: 0.5s;
+
+  &:focus {
+    outline: none;
+    border-color: rgb(45, 179, 116);
+  }
+}
+
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: transparent;
+  z-index: 10;
+
+  &--gray {
+    background-color: rgba(#D8D8D8, .7);
+  }
 }
