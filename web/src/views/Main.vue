@@ -39,13 +39,21 @@
                     v-if="!enableGrab"
                     :for="`ckb-input${todoIdx}`"
                     class="steps__ckb"
-                    :class="{ 'steps__ckb--complete' : todo.status }"
+                    :class="{
+                      'steps__ckb--complete': todo.status,
+                      'steps__ckb--disable':
+                        ({}.hasOwnProperty.call(todo, 'changeable')) && !todo.changeable
+                    }"
                     @click="updateTodoStatus(todoIdx)">
                   </label>
                   <div
                     v-if="todoIdx !== curTodoIdx"
                     class="steps__descr"
-                    :class="{ 'steps__descr--complete' : todo.status }"
+                    :class="{
+                      'steps__descr--complete': todo.status,
+                      'steps__descr--disable':
+                        ({}.hasOwnProperty.call(todo, 'changeable')) && !todo.changeable,
+                    }"
                     @click="openUpdateInput(todoIdx)">
                     {{todo.descr}}
                   </div>
@@ -66,11 +74,17 @@
                   @click="removeTodo(todoIdx)">
                   ...
                 </button> -->
-                <MoreActions
-                  class="steps__more-actions"
-                  @moveToNextDay="moveToDay(todoIdx)"
-                  @moveTo="(day) => moveToDay(todoIdx, day)"
-                  @remove="removeTodo(todoIdx)"/>
+                <div>
+                  <div v-if="({}.hasOwnProperty.call(todo, 'moveToDay'))">
+                    {{`Move to ${todo.moveToDay}`}}
+                  </div>
+                  <MoreActions
+                    v-else
+                    class="steps__more-actions"
+                    @moveToNextDay="moveToDay(todoIdx)"
+                    @moveTo="(day) => moveToDay(todoIdx, day)"
+                    @remove="removeTodo(todoIdx)"/>
+                </div>
               </div>
             </draggable>
             <!-- <div class="steps__sep-line"></div> -->
@@ -401,6 +415,7 @@ export default {
       }
     },
     moveToDay(idx, day = null) {
+      const cloneStep = { ...this.curDateTodos.steps[idx] };
       let targetDay;
       if (day) targetDay = dayjs(day).format('YYYY-MM-DD');
       else targetDay = dayjs(this.currentDate).add(1, 'day').format('YYYY-MM-DD');
@@ -415,11 +430,15 @@ export default {
               steps: [],
             };
           }
-          todos.steps.push(this.curDateTodos.steps[idx]);
+          todos.steps.push(cloneStep);
           return dbService.setFirestore(this.userId, targetDay, todos);
         }).catch((error) => {
           console.log('Error getting document:', error);
         });
+      this.curDateTodos.steps[idx].status = true;
+      this.curDateTodos.steps[idx].changeable = false;
+      this.curDateTodos.steps[idx].moveToDay = dayjs(targetDay).format('MM-DD');
+      this.updateCurDateTodosInFirebase();
     },
   },
   filters: {
@@ -539,7 +558,7 @@ export default {
     }
     &--group {
       display: flex;
-      width: 85%;
+      width: 70%;
       & * {
         flex: 0 0 auto;
       }
@@ -592,6 +611,10 @@ export default {
     &--input {
       display: none;
     }
+
+    &--disable {
+      pointer-events: none;
+    }
   }
 
   &__descr {
@@ -600,6 +623,10 @@ export default {
     &--complete {
       text-decoration: line-through;
       color:rgba(0,0,0,0.4);
+    }
+
+    &--disable {
+      pointer-events: none;
     }
   }
 
