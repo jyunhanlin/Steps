@@ -205,6 +205,13 @@ export default {
         dayCell: {
           border: '.5px solid #E9E9E9',
         },
+        dayContent: {
+          cursor: 'pointer',
+        },
+        dots: {
+          marginLeft: '2rem',
+          marginBottom: '.2rem',
+        },
       },
       barData: null,
       showNewInput: false,
