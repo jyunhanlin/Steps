@@ -1,23 +1,17 @@
 <template>
   <div class="more-action">
-    <button
-      v-if="!enableGrab"
-      class="btn"
-      @click="openContent = !openContent">
-      ...
-    </button>
     <ul class="more-action__ul" v-if="openContent">
       <li class="more-action__li" @click="moveToNextDay">移至下一天</li>
       <li class="more-action__li" @click="openCalendar">移至...</li>
       <li class="more-action__li" @click="remove">刪除</li>
     </ul>
-    <Modal v-if="showCalendar" @close="showCalendar = false">
+    <Modal v-if="showCalendar" @close="close()">
       <v-calendar
         :attributes="calendarAttrs"
         :theme-styles="calendarStyle"
         @dayclick='dayClicked'/>
     </Modal>
-    <div class="backdrop" v-if="openContent" @click="openContent = false"></div>
+    <div class="backdrop" v-if="openContent" @click="close()"></div>
   </div>
 </template>
 
@@ -26,18 +20,13 @@ import dayjs from 'dayjs';
 import Modal from './Modal.vue';
 
 export default {
+  name: 'MoreActions',
   components: {
     Modal,
   },
-  props: {
-    enableGrab: {
-      type: Boolean,
-      default: false,
-    },
-  },
   data() {
     return {
-      openContent: false,
+      openContent: true,
       showCalendar: false,
       calendarAttrs: [
         {
@@ -68,18 +57,23 @@ export default {
   methods: {
     moveToNextDay() {
       this.$emit('moveToNextDay');
-      this.openContent = false;
+      this.close();
     },
     remove() {
       this.$emit('remove');
-      this.openContent = false;
+      this.close();
     },
     openCalendar() {
-      this.showCalendar = true;
       this.openContent = false;
+      this.showCalendar = true;
     },
     dayClicked(day) {
       this.$emit('moveTo', day.date);
+      this.close();
+    },
+    close() {
+      this.$emit('close');
+      this.openContent = true;
       this.showCalendar = false;
     },
   },
@@ -96,13 +90,13 @@ export default {
     // display: inline-block;
     list-style: none;
     z-index: 100;
+    transform: translate(-70%, -20%);
   }
 
   &__li {
     cursor: pointer;
     text-align: center;
     padding: .5rem 1rem;
-    transform: translate(-80%, -50%);
     background-color: #fff;
     box-shadow: 1px 1px 1px rgba(0, 0, 0, .5);
     margin-bottom: .2rem;

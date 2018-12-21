@@ -68,22 +68,23 @@
                     @keypress.esc="curTodoIdx = -1"
                     @blur="curTodoIdx = -1" />
                 </div>
-                <!-- <button
-                  v-if="!enableGrab"
-                  class="btn steps__del-btn"
-                  @click="removeTodo(todoIdx)">
-                  ...
-                </button> -->
                 <div>
                   <div v-if="({}.hasOwnProperty.call(todo, 'moveToDay'))">
                     {{`Move to ${todo.moveToDay}`}}
                   </div>
+                  <button
+                    v-if="!({}.hasOwnProperty.call(todo, 'moveToDay')) && !enableGrab"
+                    class="btn steps__del-btn"
+                    @click="curMoreActionIdx = todoIdx">
+                    ...
+                  </button>
                   <MoreActions
-                    v-else
+                    v-if="todoIdx === curMoreActionIdx"
                     class="steps__more-actions"
                     @moveToNextDay="moveToDay(todoIdx)"
                     @moveTo="(day) => moveToDay(todoIdx, day)"
-                    @remove="removeTodo(todoIdx)"/>
+                    @remove="removeTodo(todoIdx)"
+                    @close="curMoreActionIdx = -1"/>
                 </div>
               </div>
             </draggable>
@@ -228,6 +229,7 @@ export default {
       firebaseUnsubscribe: null,
       showAbout: false,
       enableGrab: false,
+      curMoreActionIdx: -1,
     };
   },
   computed: {
