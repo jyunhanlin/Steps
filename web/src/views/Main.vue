@@ -69,8 +69,9 @@
                     @blur="curTodoIdx = -1" />
                 </div>
                 <div>
-                  <div v-if="({}.hasOwnProperty.call(todo, 'moveToDay'))">
-                    {{`Move to ${todo.moveToDay}`}}
+                  <div v-if="({}.hasOwnProperty.call(todo, 'moveToDay'))"
+                  class="steps__movedToHint">
+                    {{`🠖 ${todo.moveToDay}`}}
                   </div>
                   <button
                     v-if="!({}.hasOwnProperty.call(todo, 'moveToDay')) && !enableGrab"
@@ -169,6 +170,7 @@ import Doughnut from '../components/Doughnut';
 import Bar from '../components/Bar';
 import About from '../components/About.vue';
 import MoreActions from '../components/MoreActions.vue';
+
 
 export default {
   name: 'Todo',
@@ -300,6 +302,15 @@ export default {
       };
       this.curDateTodos.steps.push(newTodo);
       this.showNewInput = false;
+      this.$toasted.show(
+        `「${this.newInput}」已新增`,
+        {
+          position: 'bottom-right',
+          duration: 2500,
+          theme: 'outline',
+          className: 'vueToasted--stepsAdded',
+        },
+      );
       this.newInput = '';
       this.updateCurDateTodosInFirebase();
     },
@@ -324,6 +335,15 @@ export default {
         this.curDateTodos.steps.splice(idx, 1);
       }
       this.updateCurDateTodosInFirebase();
+      this.$toasted.show(
+        '刪除成功',
+        {
+          position: 'bottom-right',
+          duration: 2500,
+          theme: 'outline',
+          className: 'vueToasted--stepsDeleted',
+        },
+      );
     },
     logout() {
       authService.signout()
@@ -448,6 +468,13 @@ export default {
       this.curDateTodos.steps[idx].changeable = false;
       this.curDateTodos.steps[idx].moveToDay = dayjs(targetDay).format('MM-DD');
       this.updateCurDateTodosInFirebase();
+      this.$toasted.show(
+        '移動成功',
+        {
+          position: 'bottom-right',
+          duration: 2000,
+        },
+      );
     },
   },
   filters: {
@@ -505,6 +532,9 @@ export default {
   grid-column: 4 / 7;
   grid-row: 2 / 8;
   margin: 0 4rem;
+  &__icon {
+    background: transparent;
+  }
 
   &__card {
     height: calc(100vh / 9 * 6);
@@ -582,8 +612,7 @@ export default {
   }
 
   &__li:hover &__del-btn{
-    transition:0.1s;
-    opacity: 0.5;
+    opacity: 0.8;
   }
 
   &__move {
@@ -641,6 +670,10 @@ export default {
 
   &__del-btn {
     opacity: 0;
+    background: transparent;
+    font-weight: 600;
+    font-size: 1.5rem;
+    transition: 0.1s;
   }
 
   &__add-step {
@@ -700,6 +733,18 @@ export default {
     font-size: 3rem;
     font-weight:200;
     color:#c4c4c4;
+    user-select: none;
+  }
+
+  &__movedToHint {
+    font-size: 12px;
+    font-weight: 600;
+    color:rgba(0,0,0,0.2);
+    transition:0.2s;
+    user-select: none;
+    &:hover{
+      color:rgba(0,0,0,0.5);
+    }
   }
 }
 
@@ -779,5 +824,14 @@ export default {
 
 .container {
   height: auto;
+}
+
+.vueToasted {
+  &--stepsAdded{
+    opacity:0.8;
+  }
+  &--stepsDeleted{
+    opacity:0.8;
+  }
 }
 </style>
