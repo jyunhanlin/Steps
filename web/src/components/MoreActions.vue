@@ -102,7 +102,7 @@ export default {
     margin-bottom: .2rem;
     transition:0.15s;
     &:hover{
-    background: rgba(240,240,240,1);
+      background: rgba(240 ,240 ,240 , 1);
     }
   }
 }
