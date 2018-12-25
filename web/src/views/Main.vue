@@ -472,7 +472,9 @@ export default {
         '移動成功',
         {
           position: 'bottom-right',
-          duration: 2000,
+          duration: 2500,
+          theme: 'outline',
+          className: 'vueToasted--stepsAdded',
         },
       );
     },
