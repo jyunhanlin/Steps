@@ -71,7 +71,7 @@
                 <div>
                   <div v-if="({}.hasOwnProperty.call(todo, 'moveToDay'))"
                   class="steps__movedToHint">
-                    {{`🠖 ${todo.moveToDay}`}}
+                    {{`→ ${todo.moveToDay}`}}
                   </div>
                   <button
                     v-if="!({}.hasOwnProperty.call(todo, 'moveToDay')) && !enableGrab"
