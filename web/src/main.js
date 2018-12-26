@@ -2,6 +2,7 @@ import Vue from 'vue';
 import VueFire from 'vuefire';
 import { setupCalendar, Calendar } from 'v-calendar';
 import 'v-calendar/lib/v-calendar.min.css';
+import Toasted from 'vue-toasted';
 
 import App from './App.vue';
 import router from './router';
@@ -9,7 +10,7 @@ import router from './router';
 import './styles/main.scss';
 
 Vue.use(VueFire);
-
+Vue.use(Toasted);
 
 // Remember to setup calendar (passing in defaults if needed)
 setupCalendar({

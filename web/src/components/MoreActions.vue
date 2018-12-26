@@ -100,6 +100,10 @@ export default {
     background-color: #fff;
     box-shadow: 1px 1px 1px rgba(0, 0, 0, .5);
     margin-bottom: .2rem;
+    transition:0.15s;
+    &:hover{
+      background: rgba(240 ,240 ,240 , 1);
+    }
   }
 }
 </style>
