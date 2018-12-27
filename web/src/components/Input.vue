@@ -30,7 +30,7 @@ export default {
       default: 'text',
     },
     inputValue: {
-      tyep: String,
+      type: String,
       default: '',
     },
   },
