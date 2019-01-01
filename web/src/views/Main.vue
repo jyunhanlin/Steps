@@ -348,7 +348,7 @@ export default {
     logout() {
       authService.signout()
         .then(() => {
-          this.$router.push('/login');
+          this.$router.push('/signup');
         })
         .catch((err) => {
           console.log('logout fail', err);
@@ -491,7 +491,7 @@ export default {
       if (user) {
         next();
       } else {
-        next('/login');
+        next('/signup');
       }
     });
   },
