@@ -91,6 +91,8 @@ export default {
     list-style: none;
     z-index: 100;
     transform: translate(-70%, -20%);
+    display: block;
+    width: 7rem;
   }
 
   &__li {

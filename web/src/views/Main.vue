@@ -1,33 +1,103 @@
 <template>
   <div class="todo">
+    <div class="backlog">
+      <Card class="container">
+        <div slot="header" class="card__header">
+          <div>Backlog</div>
+        </div>
+        <div slot="main" class="backlog__main">
+          <div class="backlog__ul card__ul">
+            <draggable
+              v-model="backLogs"
+              :options="{ handle:'.card__move' }"
+              @change="updateBackLogsInFirebase">
+              <div
+                class="backlog__li card__li"
+                v-for="(log, logIdx) in backLogs"
+                :key="log + logIdx">
+                <div class="backlog__li--group card__li--group">
+                  <span class="card__move">
+                    <img src="../assets/menu.png" alt="">
+                  </span>
+                  <div class="backlog__dot"></div>
+                  <div
+                    v-if="logIdx !== curLogIdx"
+                    class="card__descr"
+                    @click="openUpdateLogInput(logIdx)">
+                    {{log}}
+                  </div>
+                  <input
+                    v-show="logIdx === curLogIdx"
+                    :ref="`updateLogInput${logIdx}`"
+                    type="text"
+                    class="input"
+                    :value="log"
+                    @input="changeUpdateLogInput"
+                    @keypress.enter="updateBackLogs(logIdx, log)"
+                    @keypress.esc="curLogIdx = -1"
+                    @blur="curLogIdx = -1" />
+                </div>
+                <div>
+                  <button
+                    class="btn card__btn"
+                    @click="curLogMoreActionIdx = logIdx">
+                    ...
+                  </button>
+                  <MoreActions
+                    v-if="logIdx === curLogMoreActionIdx"
+                    @moveToNextDay="moveToDay(logIdx)"
+                    @moveTo="(day) => moveToDay(logIdx, day)"
+                    @remove="removeTodo(logIdx)"
+                    @close="curLogMoreActionIdx = -1"/>
+                </div>
+              </div>
+            </draggable>
+          </div>
+          <div class="card__add">
+            <div
+              v-if="!showNewLogInput"
+              class="card__add--descr"
+              @click="openNewLogInput">
+              點此新增
+              <img
+                src="../assets/plus.svg"
+                style="height:1.25rem; transform:translateY(4px); opacity:0.8;">
+            </div>
+            <input
+              v-show="showNewLogInput"
+              ref="newLogInput"
+              v-model="newLogInput"
+              placeholder="新增事項..."
+              type="text"
+              class="input"
+              @keypress.enter="addNewLog"
+              @blur="showNewLogInput = false" />
+          </div>
+        </div>
+      </Card>
+    </div>
     <div class="current-date">
       <span class="current-date__left-arrow" @click="changeDate(-1)">◀︎</span>
       <span class="current-date__date">{{currentDate | dateFormat}}</span>
       <span class="current-date__right-arrow" @click="changeDate(1)">▶︎</span>
     </div>
     <div class="steps">
-      <Card class="container steps__card">
-        <div slot="header" class="steps__header">
+      <Card class="container">
+        <div slot="header" class="card__header">
           <div><img src="../assets/stairs.png" alt=""> Steps</div>
-          <button class="btn steps__icon" @click="enableGrab = !enableGrab">
-            <img
-              src="../assets/shuffle_dark.png"
-              class="steps__img"
-              :class="{'steps__img--dragging': enableGrab}">
-          </button>
         </div>
-        <div slot="main" class="steps__todos">
-          <div class="steps__ul" :class="{'steps__ul--dragging': enableGrab}">
+        <div slot="main" class="steps__main">
+          <div class="steps__ul card__ul">
             <draggable
               v-model="curDateTodos.steps"
-              :options="{ handle:'.steps__move' }"
+              :options="{ handle:'.card__move' }"
               @change="updateCurDateTodosInFirebase">
               <div
-                class="steps__li"
+                class="steps__li card__li"
                 v-for="(todo, todoIdx) in curDateTodos.steps"
                 :key="todo.descr + todoIdx">
-                <div class="steps__li--group">
-                  <span class="steps__move" v-if="enableGrab">
+                <div class="steps__li--group card__li--group">
+                  <span class="card__move">
                     <img src="../assets/menu.png" alt="">
                   </span>
                   <input
@@ -36,7 +106,6 @@
                     :id="`ckb-input${todoIdx}`"
                     :checked="todo.status"/>
                   <label
-                    v-if="!enableGrab"
                     :for="`ckb-input${todoIdx}`"
                     class="steps__ckb"
                     :class="{
@@ -48,10 +117,10 @@
                   </label>
                   <div
                     v-if="todoIdx !== curTodoIdx"
-                    class="steps__descr"
+                    class="card__descr"
                     :class="{
-                      'steps__descr--complete': todo.status,
-                      'steps__descr--disable':
+                      'card__descr--complete': todo.status,
+                      'card__descr--disable':
                         ({}.hasOwnProperty.call(todo, 'changeable')) && !todo.changeable,
                     }"
                     @click="openUpdateInput(todoIdx)">
@@ -74,14 +143,13 @@
                     {{`→ ${todo.moveToDay}`}}
                   </div>
                   <button
-                    v-if="!({}.hasOwnProperty.call(todo, 'moveToDay')) && !enableGrab"
-                    class="btn steps__del-btn"
+                    v-if="!({}.hasOwnProperty.call(todo, 'moveToDay'))"
+                    class="btn card__btn"
                     @click="curMoreActionIdx = todoIdx">
                     ...
                   </button>
                   <MoreActions
                     v-if="todoIdx === curMoreActionIdx"
-                    class="steps__more-actions"
                     @moveToNextDay="moveToDay(todoIdx)"
                     @moveTo="(day) => moveToDay(todoIdx, day)"
                     @remove="removeTodo(todoIdx)"
@@ -91,11 +159,10 @@
             </draggable>
             <!-- <div class="steps__sep-line"></div> -->
           </div>
-          <div class="steps__add-step">
-            <div class="steps__add-btn" @click="openNewInput">⨁</div>
+          <div class="card__add">
             <div
               v-if="!showNewInput"
-              class="steps__add-descr"
+              class="card__add--descr"
               @click="openNewInput">
               按下 alt + n 以新增
               <img
@@ -112,9 +179,8 @@
               @keypress.enter="addNewTodo"
               @blur="showNewInput = false" />
           </div>
-          <p class="steps__hint" :class="{'steps__hint--dragging':enableGrab}">點擊右上角圖標以切換回一般模式</p>
         </div>
-        <div slot="footer" class="steps__charts" :class="{'steps__charts--dragging':enableGrab}">
+        <div slot="footer" class="steps__charts">
           <radial-progress-bar
             startColor="#32C373"
             stopColor="#32C373"
@@ -136,7 +202,7 @@
     </div>
     <div class="calendar">
       <Card class="container">
-        <div slot="main">
+        <div slot="main" class="calendar__main">
           <v-calendar
             :attributes="calendarAttrs"
             :theme-styles="calendarStyle"
@@ -185,18 +251,11 @@ export default {
         {
           key: 'today',
           highlight: {
-            // borderColor: 'black',
-            // borderWidth: '1px',
             borderRadius: '0',
-            // height: '1.5rem',
-            // Other properties are available too, like `height` & `borderRadius`
             backgroundColor: '#EEEEEE',
             height: '100%',
             width: '100%',
           },
-          // contentStyle: {
-          //   border: '1px solid #E9E9E9',
-          // },
           dates: dayjs().format('YYYY-MM-DD'),
         },
       ],
@@ -218,9 +277,13 @@ export default {
       },
       barData: null,
       showNewInput: false,
+      showNewLogInput: false,
       newInput: '',
+      newLogInput: '',
       curTodoIdx: -1,
+      curLogIdx: -1,
       updateInput: '',
+      updateLogInput: '',
       userId: auth.currentUser.uid || 'null',
       mountains: [],
       curMonthTodos: {},
@@ -228,10 +291,11 @@ export default {
         date: dayjs(this.currentDate).unix(),
         steps: [],
       },
+      backLogs: [],
       firebaseUnsubscribe: null,
       showAbout: false,
-      enableGrab: false,
       curMoreActionIdx: -1,
+      curLogMoreActionIdx: -1,
     };
   },
   computed: {
@@ -244,6 +308,7 @@ export default {
   },
   mounted() {
     this.getMonthTodos();
+    this.getBackLogs();
     window.addEventListener('keyup', (e) => {
       if (e.altKey && e.keyCode === 78) {
         this.openNewInput();
@@ -257,10 +322,22 @@ export default {
         this.$refs.newInput.focus();
       });
     },
+    openNewLogInput() {
+      this.showNewLogInput = true;
+      this.$nextTick(() => {
+        this.$refs.newLogInput.focus();
+      });
+    },
     openUpdateInput(idx) {
       this.curTodoIdx = idx;
       this.$nextTick(() => {
         this.$refs[`updateInput${idx}`][0].focus();
+      });
+    },
+    openUpdateLogInput(idx) {
+      this.curLogIdx = idx;
+      this.$nextTick(() => {
+        this.$refs[`updateLogInput${idx}`][0].focus();
       });
     },
     changeDate(plusMinus) {
@@ -314,6 +391,25 @@ export default {
       this.newInput = '';
       this.updateCurDateTodosInFirebase();
     },
+    addNewLog() {
+      if (this.newLogInput === '') {
+        this.showNewLogInput = false;
+        return;
+      }
+      this.backLogs.push(this.newLogInput);
+      this.showNewLogInput = false;
+      this.$toasted.show(
+        `「${this.newLogInput}」已新增`,
+        {
+          position: 'bottom-right',
+          duration: 2500,
+          theme: 'outline',
+          className: 'vueToasted--stepsAdded',
+        },
+      );
+      this.newLogInput = '';
+      this.updateBackLogsInFirebase();
+    },
     updateTodoStatus(idx) {
       this.curDateTodos.steps[idx].status = !this.curDateTodos.steps[idx].status;
       this.updateCurDateTodosInFirebase();
@@ -321,11 +417,20 @@ export default {
     changeUpdateInput(e) {
       this.updateInput = e.target.value;
     },
+    changeUpdateLogInput(e) {
+      this.updateLogInput = e.target.value;
+    },
     updateTodo(idx, descr) {
       if (this.updateInput === '') this.updateInput = descr;
       this.curDateTodos.steps[idx].descr = this.updateInput;
       this.curTodoIdx = -1;
       this.updateCurDateTodosInFirebase();
+    },
+    updateBackLogs(idx, log) {
+      if (this.updateLogInput === '') this.updateLogInput = log;
+      this.backLogs.splice(idx, 1, this.updateLogInput);
+      this.curLogIdx = -1;
+      this.updateBackLogsInFirebase();
     },
     removeTodo(idx) {
       // TODO
@@ -384,6 +489,21 @@ export default {
             console.log('query error: ', err);
           });
       }
+    },
+    getBackLogs() {
+      if (this.userId) {
+        dbService.getFirestore(this.userId, 'backLogs')
+          .then((doc) => {
+            if (doc.exists) {
+              this.backLogs = doc.data().logs || [];
+            }
+          }).catch((error) => {
+            console.log('Error getting document:', error);
+          });
+      }
+    },
+    updateBackLogsInFirebase() {
+      db.collection(this.userId).doc('backLogs').set({ logs: this.backLogs });
     },
     checkCalendar() {
       this.calendarAttrs.splice(1);
@@ -503,24 +623,162 @@ export default {
   display: grid;
   grid-template-columns: 1fr repeat(7, minmax(min-content, 12rem)) 1fr;
   grid-template-rows: repeat(9, calc(100vh / 9));
-  height:100vh;
+  height: 100vh;
   overflow: hidden;
-  padding-top:40px;
-  background:#f4f4f4;
+  padding-top: 40px;
+  background: #f4f4f4;
 }
 
-.mountain {
+.card {
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    padding: 2rem 3rem 0;
+
+    & div img {
+      width: 18px;
+      opacity: 0.2;
+      transform: translateY(5px);
+    }
+  }
+
+  &__ul {
+    margin-top: 1.5rem;
+    overflow-y: auto;
+  }
+
+  &__li {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    padding: 0.1rem 0;
+    transition: 0.2s;
+
+    & * {
+      flex: 0 0 auto;
+    }
+
+    &--group {
+      display: flex;
+
+      & * {
+        flex: 0 0 auto;
+      }
+
+      input {
+        font-size: 1.6rem;
+        margin-top: 0px;
+        margin-bottom: 1px;
+        transform: translateY(-1px);
+      }
+    }
+  }
+
+  &__descr {
+    font-size: 1.6rem;
+    color: rgba(0,0,0,1);
+
+    &--complete {
+      text-decoration: line-through;
+      color: rgba(0,0,0,0.4);
+    }
+
+    &--disable {
+      pointer-events: none;
+    }
+  }
+
+  &__move {
+    cursor: grab;
+    display: inline-block;
+    width: 12px;
+    height: 1.2rem;
+    margin-left: .5rem;
+    margin-right: 1.5rem;
+    transform: translateY(.3rem);
+    opacity: 0;
+
+    & img {
+      width: 100%;
+      height: 100%;
+      opacity: 0.48;
+    }
+  }
+
+  &__btn {
+    opacity: 0;
+    background: transparent;
+    font-weight: 600;
+    font-size: 1.5rem;
+    transition: .1s;
+    margin-right: 2rem;
+  }
+
+  &__li:hover &__btn{
+    opacity: .8;
+  }
+
+  &__li:hover &__move{
+    opacity: 1;
+  }
+
+  &__add {
+    padding-top: 5px;
+    padding: 5px 3rem 2rem;
+    display: flex;
+    input {
+      font-size: 1.6rem;
+      line-height: 2rem;
+    }
+
+    &--descr {
+      width: 100%;
+      line-height: 3rem;
+      cursor: pointer;
+      color: rgba(0,0,0,0.4);
+      letter-spacing: 1px;
+      font-size: 1.25rem;
+      font-weight: 500;
+    }
+  }
+}
+
+.backlog {
   grid-column: 2 / 4;
   grid-row: 2 / 6;
-  transform:translateX(2.5rem);
+  transform: translateX(2.5rem);
 
   &__header {
     display: flex;
     justify-content: space-between;
   }
 
-  &__btn {
-    font-size: 2rem;
+  &__main {
+    height: calc(100vh / 9 * 3.5);
+  }
+
+  &__ul {
+    max-height: calc(100vh / 9 * 2.6);
+  }
+
+  &__li {
+    &--group {
+      width: 60%;
+    }
+
+    input {
+      width: 100%;
+    }
+  }
+
+  &__dot {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, .2);
+    transform: translateY(.4rem);
+    margin-right: 1rem;
   }
 }
 
@@ -534,102 +792,22 @@ export default {
   grid-column: 4 / 7;
   grid-row: 2 / 8;
   margin: 0 4rem;
-  &__icon {
-    background: transparent;
-  }
 
-  &__card {
-    height: calc(100vh / 9 * 6);
-    margin-bottom: 2rem;
-  }
-
-  &__header {
-    display: flex;
-    justify-content: space-between;
-
-    & div img {
-      width:18px;
-      opacity: 0.2;
-      transform: translateY(5px);
-    }
-  }
-
-  &__img {
-    opacity: 0.3;
-    width: 1.3rem;
-    transform: translateY(2px);
-    transition: 0.2s;
-    &--dragging{
-      opacity: 1;
-    }
-  }
-
-  &__todos {
+  &__main {
     height: calc(100vh / 9 * 3.6);
   }
 
   &__ul {
     max-height: calc(100vh / 9 * 3);
-    position: relative;
-    margin-top: 1.5rem;
-    overflow-y: auto;
-    transition:0.2s;
-    &--dragging{
-      // transform:translateX(-10px);
-      margin-left:-20px;
-    }
-  }
-
-  &__sep-line {
-    height: 100%;
-    width: 0.1rem;
-    border: 0.5px solid rgb(196, 196, 196);
-    position: absolute;
-    left: 2rem;
-    top: 0;
   }
 
   &__li {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.1rem 0;
-    transition:0.2s;
-    & * {
-      flex: 0 0 auto;
-    }
     &--group {
-      display: flex;
       width: 70%;
-      & * {
-        flex: 0 0 auto;
-      }
-      input{
-        font-size: 1.6rem;
-        margin-top:0px;
-        margin-bottom:1px;
-        width: 100%;
-        transform:translateY(-1px);
-      }
     }
-  }
 
-  &__li:hover &__del-btn{
-    opacity: 0.8;
-  }
-
-  &__move {
-    cursor: grab;
-    display: inline-block;
-    width: 0.75rem;
-    margin-right: 0.75rem;
-    transform:translateY(.3rem);
-    opacity: 0.8;
-
-    height:1rem;
-    & img{
-      width: 16px;
-      transform:translate(-4px,1px);
-      opacity:0.6;
+    input {
+      width: 100%;
     }
   }
 
@@ -638,11 +816,11 @@ export default {
     width: 0.9rem;
     height: 0.9rem;
     border: 1px solid rgba(0,0,0,0.2);
-    transform:translateY(6px);
+    transform: translateY(6px);
     position: relative;
     margin-right: 0.75rem;
-    cursor:pointer;
-    transition:0.2s;
+    cursor: pointer;
+    transition: 0.2s;
     &--complete{
       background: #888888;
       border: 1px solid rgba(0,0,0,0);
@@ -657,95 +835,32 @@ export default {
     }
   }
 
-  &__descr {
-    font-size:1.6rem;
-    color:rgba(0,0,0,1);
-    &--complete {
-      text-decoration: line-through;
-      color:rgba(0,0,0,0.4);
-    }
-
-    &--disable {
-      pointer-events: none;
-    }
-  }
-
-  &__del-btn {
-    opacity: 0;
-    background: transparent;
-    font-weight: 600;
-    font-size: 1.5rem;
-    transition: 0.1s;
-  }
-
-  &__add-step {
-    padding-top:5px;
-    display: flex;
-    margin-bottom:50px;
-    input{
-      font-size: 1.6rem;
-      line-height: 2rem;
-    }
-  }
-
-  &__add-btn {
-    margin-left: -0.2rem;
-    margin-right: 1.5rem;
-    font-size: 2rem;
-    cursor: pointer;
-    display:none;
-  }
-
-  &__add-descr {
-    width: 100%;
-    line-height: 3rem;
-    cursor: pointer;
-    color:rgba(0,0,0,0.4);
-    letter-spacing:1px;
-    font-size:1.25rem;
-    font-weight: 500;
-  }
-
   &__charts {
     display: flex;
     flex-direction: column;
     // justify-content: center;
     align-items: center;
 
-    opacity:1;
-    transition:0.2s;
-    &--dragging{
-      opacity:0;
-    }
-  }
-
-
-  &__hint{
-    text-align: center;
-    opacity: 0;
+    opacity: 1;
     transition: 0.2s;
-    font-weight: 500;
-
-    &--dragging{
-      opacity:0.3;
-    }
   }
 
   &__complete-percnetage {
     font-size: 3rem;
-    font-weight:200;
-    color:#c4c4c4;
+    font-weight: 200;
+    color: #c4c4c4;
     user-select: none;
   }
 
   &__movedToHint {
+    margin-right: 2rem;
     font-size: 12px;
     font-weight: 600;
-    color:rgba(0,0,0,0.2);
-    transition:0.2s;
+    color: rgba(0,0,0,0.2);
+    transition: 0.2s;
     user-select: none;
     &:hover{
-      color:rgba(0,0,0,0.5);
+      color: rgba(0,0,0,0.5);
     }
   }
 }
@@ -753,8 +868,11 @@ export default {
 .calendar {
   grid-column: 7 / 9;
   grid-row: 2 / 5;
-  transform:translateX(-2.5rem);
+  transform: translateX(-2.5rem);
 
+  &__main {
+    padding: 2rem 3rem;
+  }
 }
 
 .current-date {
@@ -767,7 +885,7 @@ export default {
 
   &__date {
     font-size: 5rem;
-    font-weight:200;
+    font-weight: 200;
   }
   &__right-arrow, &__left-arrow {
     cursor: pointer;
@@ -783,35 +901,28 @@ export default {
 }
 
 .logout {
-  // position: absolute;
-  // bottom: 3.5rem;
-  // right: 3rem;
-  // padding: 1.5rem 2.5rem;
-  // grid-column: 8 / 9;
-  // grid-row: 8 / 9;
-  // transform:translateX(2.5rem);
   grid-column: 7 / 9;
   grid-row: 7/ 8;
-  transform:translateX(-2.5rem);
+  transform: translateX(-2.5rem);
   display: flex;
   justify-content: flex-end;
 
   &__btn {
-    height:2rem;
+    height: 2rem;
     font-size: 1.5rem;
-    color:#d0d0d0;
-    letter-spacing:1px;
-    border:1px solid rgba(0,0,0,0)!important;
-    border-radius:20px;
-    padding:0px 10px;
-    transition:0.2s;
+    color: #d0d0d0;
+    letter-spacing: 1px;
+    border: 1px solid rgba(0,0,0,0)!important;
+    border-radius: 20px;
+    padding: 0px 10px;
+    transition: 0.2s;
     background: transparent;
     display: flex;
     justify-content: center;
     align-items: center;
 
     &:hover {
-      color:#666666;
+      color: #666666;
     }
   }
 
@@ -830,10 +941,10 @@ export default {
 
 .vueToasted {
   &--stepsAdded{
-    opacity:0.8;
+    opacity: 0.8;
   }
   &--stepsDeleted{
-    opacity:0.8;
+    opacity: 0.8;
   }
 }
 </style>
