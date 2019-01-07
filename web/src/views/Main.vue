@@ -829,7 +829,8 @@ export default {
 .backlog {
   grid-column: 2 / 4;
   grid-row: 2 / 6;
-  transform: translateX(2.5rem);
+  position: relative;
+  left: 2.5rem;
 
   &__header {
     display: flex;
@@ -951,7 +952,9 @@ export default {
 .calendar {
   grid-column: 7 / 9;
   grid-row: 2 / 5;
-  transform: translateX(-2.5rem);
+  // transform: translateX(-2.5rem);
+  position: relative;
+  right: 2.5rem;
 
   &__main {
     padding: 2rem 3rem;
