@@ -45,9 +45,14 @@
                   </button>
                   <MoreActions
                     v-if="logIdx === curLogMoreActionIdx"
-                    @moveToNextDay="moveToDay(logIdx)"
-                    @moveTo="(day) => moveToDay(logIdx, day)"
-                    @remove="removeTodo(logIdx)"
+                    :actions="[
+                      'moveToTodayStep',
+                      'moveToStep',
+                      'remove'
+                    ]"
+                    @moveToTodayStep="moveToDayFromBacklog(logIdx)"
+                    @moveTo="(day) => moveToDayFromBacklog(logIdx, day)"
+                    @remove="removeBacklog(logIdx)"
                     @close="curLogMoreActionIdx = -1"/>
                 </div>
               </div>
@@ -150,8 +155,15 @@
                   </button>
                   <MoreActions
                     v-if="todoIdx === curMoreActionIdx"
+                    :actions="[
+                      'moveToNextDay',
+                      'moveToDay',
+                      'moveToBacklog',
+                      'remove'
+                    ]"
                     @moveToNextDay="moveToDay(todoIdx)"
                     @moveTo="(day) => moveToDay(todoIdx, day)"
+                    @moveToBacklog="moveToBacklog(todoIdx)"
                     @remove="removeTodo(todoIdx)"
                     @close="curMoreActionIdx = -1"/>
                 </div>
@@ -450,6 +462,24 @@ export default {
         },
       );
     },
+    removeBacklog(idx) {
+      // TODO
+      // eslint-disable-next-line
+      const sure = window.confirm('確定刪除?');
+      if (sure) {
+        this.backLogs.splice(idx, 1);
+      }
+      this.updateBackLogsInFirebase();
+      this.$toasted.show(
+        '刪除成功',
+        {
+          position: 'bottom-right',
+          duration: 2500,
+          theme: 'outline',
+          className: 'vueToasted--stepsDeleted',
+        },
+      );
+    },
     logout() {
       authService.signout()
         .then(() => {
@@ -587,6 +617,59 @@ export default {
       this.curDateTodos.steps[idx].status = true;
       this.curDateTodos.steps[idx].changeable = false;
       this.curDateTodos.steps[idx].moveToDay = dayjs(targetDay).format('MM-DD');
+      this.updateCurDateTodosInFirebase();
+      this.$toasted.show(
+        '移動成功',
+        {
+          position: 'bottom-right',
+          duration: 2500,
+          theme: 'outline',
+          className: 'vueToasted--stepsAdded',
+        },
+      );
+    },
+    moveToBacklog(idx) {
+      const newLog = this.curDateTodos.steps[idx].descr;
+      this.backLogs.push(newLog);
+      this.$toasted.show(
+        `「${newLog}」已移至Backlog`,
+        {
+          position: 'bottom-right',
+          duration: 2500,
+          theme: 'outline',
+          className: 'vueToasted--stepsAdded',
+        },
+      );
+      this.updateBackLogsInFirebase();
+    },
+    moveToDayFromBacklog(idx, day = null) {
+      let targetDay;
+      if (day) targetDay = dayjs(day).format('YYYY-MM-DD');
+      else targetDay = dayjs().format('YYYY-MM-DD');
+
+      const newTodo = {
+        id: '',
+        descr: this.backLogs[idx],
+        subDescr: '',
+        status: false,
+        changeable: true,
+      };
+      dbService.getFirestore(this.userId, targetDay)
+        .then((doc) => {
+          let todos;
+          if (doc.exists) {
+            todos = doc.data();
+          } else {
+            todos = {
+              date: dayjs(targetDay).unix(),
+              steps: [],
+            };
+          }
+          todos.steps.push(newTodo);
+          return dbService.setFirestore(this.userId, targetDay, todos);
+        }).catch((error) => {
+          console.log('Error getting document:', error);
+        });
       this.updateCurDateTodosInFirebase();
       this.$toasted.show(
         '移動成功',

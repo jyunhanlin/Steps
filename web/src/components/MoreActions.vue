@@ -1,9 +1,42 @@
 <template>
   <div class="more-action">
     <ul class="more-action__ul" v-if="openContent">
-      <li class="more-action__li" @click="moveToNextDay">移至下一天</li>
-      <li class="more-action__li" @click="openCalendar">移至...</li>
-      <li class="more-action__li" @click="remove">刪除</li>
+      <li
+        v-if="actions.includes('moveToNextDay')"
+        class="more-action__li"
+        @click="moveToNextDay">
+        移至下一天
+      </li>
+      <li
+        v-if="actions.includes('moveToDay')"
+        class="more-action__li"
+        @click="openCalendar">
+        移至...
+      </li>
+      <li
+        v-if="actions.includes('moveToBacklog')"
+        class="more-action__li"
+        @click="moveToBacklog">
+        移至Backlog
+      </li>
+      <li
+        v-if="actions.includes('moveToTodayStep')"
+        class="more-action__li"
+        @click="moveToTodayStep">
+        移至今日Steps
+      </li>
+      <li
+        v-if="actions.includes('moveToStep')"
+        class="more-action__li"
+        @click="openCalendar">
+        移至...Steps
+      </li>
+      <li
+        v-if="actions.includes('remove')"
+        class="more-action__li"
+        @click="remove">
+        刪除
+      </li>
     </ul>
     <Modal v-if="showCalendar" @close="close()">
       <v-calendar
@@ -23,6 +56,14 @@ export default {
   name: 'MoreActions',
   components: {
     Modal,
+  },
+  props: {
+    actions: {
+      type: Array,
+      default() {
+        return ['remove'];
+      },
+    },
   },
   data() {
     return {
@@ -55,8 +96,16 @@ export default {
     };
   },
   methods: {
+    moveToTodayStep() {
+      this.$emit('moveToTodayStep');
+      this.close();
+    },
     moveToNextDay() {
       this.$emit('moveToNextDay');
+      this.close();
+    },
+    moveToBacklog() {
+      this.$emit('moveToBacklog');
       this.close();
     },
     remove() {
@@ -92,7 +141,7 @@ export default {
     z-index: 100;
     transform: translate(-70%, -20%);
     display: block;
-    width: 7rem;
+    width: 9rem;
   }
 
   &__li {
